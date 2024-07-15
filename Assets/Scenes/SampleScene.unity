@@ -861,6 +861,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1586527574}
+  - component: {fileID: 1586527575}
   m_Layer: 0
   m_Name: Scene Objects
   m_TagString: Untagged
@@ -887,6 +888,20 @@ Transform:
   - {fileID: 301425756}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1586527575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1586527573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3467b7074902f024bb88c8988a69b1ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  color: {r: 0.42745113, g: 1, b: 0, a: 0}
+  mat: {fileID: 2100000, guid: 2de972ab793cbda4b89157c4d7e6d8a3, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -27,7 +27,7 @@ Shader "ESC_Shaders/TestShader"
             // HLSL files (for example, Common.hlsl, SpaceTransforms.hlsl, etc.).
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"            
             
-            uniform float4x4 MyMatrix;
+            float4 MyColor;
 
             // The structure definition defines which variables it contains.
             // This example uses the Attributes structure as an input structure in
@@ -63,9 +63,7 @@ Shader "ESC_Shaders/TestShader"
     half4 frag() : SV_Target
     {
         // Defining the color variable and returning it.
-        half4 customColor;
-        customColor = half4(0.5, 0, 0, 1);
-        return customColor;
+        return MyColor;
     }
     ENDHLSL
 }
