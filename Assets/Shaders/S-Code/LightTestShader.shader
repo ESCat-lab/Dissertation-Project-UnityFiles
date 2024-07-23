@@ -4,6 +4,8 @@
 
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 Shader "ESC_Shaders/LightTestShader"
 {
     Properties
@@ -23,23 +25,30 @@ Shader "ESC_Shaders/LightTestShader"
 
             float4 _Tint;
 
+            struct VertexData {
+				float4 position : POSITION;
+				float3 normal : NORMAL;
+				float2 uv : TEXCOORD0;
+			};
+
 			struct Interpolators 
             {
 				float4 position : SV_POSITION;
-				float3 localPosition : TEXCOORD0;
+				float2 uv : TEXCOORD0;
+                float3 normal : TEXCOORD1;
 			};
 
-            Interpolators MyVertexProgram (float4 position :POSITION)
+            Interpolators MyVertexProgram (VertexData v)
             {
                 Interpolators i;
-                i.localPosition = position.xyz;
-                i.position = UnityObjectToClipPos(position);
+                i.position = UnityObjectToClipPos(v.position);
+                i.uv = v.uv;
                 return i;
 			}
 
 			float4 MyFragmentProgram (Interpolators i) :SV_TARGET
             {
-                return float4(i.localPosition + 0.5, 1) * _Tint;
+                return float4(i.uv, 1, 1);
 			}
             ENDCG
 		}
