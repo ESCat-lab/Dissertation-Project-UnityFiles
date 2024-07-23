@@ -43,12 +43,24 @@ Shader "ESC_Shaders/LightTestShader"
                 Interpolators i;
                 i.position = UnityObjectToClipPos(v.position);
                 i.uv = v.uv;
+                //This is more optimized
+                i.normal = UnityObjectToWorldNormal(v.normal);
+
+                //under the hood this code looks like the one below:
+				//i.normal = mul(
+				//	transpose((float3x3)unity_WorldToObject),
+				//	v.normal
+				//);
+
+				i.normal = normalize(i.normal);
                 return i;
 			}
 
 			float4 MyFragmentProgram (Interpolators i) :SV_TARGET
             {
-                return float4(i.uv, 1, 1);
+                //this is a small correction that can be removed to optimize
+                i.normal = normalize(i.normal);
+                return float4(i.normal * 0.5 + 0.5, 1);
 			}
             ENDCG
 		}
