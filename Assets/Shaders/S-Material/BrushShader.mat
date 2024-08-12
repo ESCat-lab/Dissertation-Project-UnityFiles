@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MetallicLightingShader
-  m_Shader: {fileID: 4800000, guid: 5f11edcd9ffbe9e439229e52c0fe4d7c, type: 3}
+  m_Name: BrushShader
+  m_Shader: {fileID: 4800000, guid: 161ad4ddd685c6b46864b27e26c1be05, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []

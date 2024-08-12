@@ -1,11 +1,5 @@
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
 Shader "ESC_Shaders/SpecularLightTestShader"
 {
     Properties
@@ -53,14 +47,14 @@ Shader "ESC_Shaders/SpecularLightTestShader"
             Interpolators MyVertexProgram (VertexData v)
             {
                 Interpolators i;
-                i.position = TransformObjectToHClip(v.position);
+                i.position = TransformObjectToHClip(v.position); // Transforms position from object space to homogenous space. More efficient than computing M*VertexPosition matrix product.
+
                 i.worldPos = mul(unity_ObjectToWorld, v.position);
                 i.uv = v.uv;
 				i.normal = mul(
-					transpose((float3x3)unity_WorldToObject),
+					transpose((float3x3)unity_WorldToObject), // Transpose the inverse of current world matrix, converted to a 3x3 float matrix
 					v.normal
 				);
-
 				i.normal = normalize(i.normal);
                 return i;
 			}
