@@ -9,7 +9,12 @@ Shader "ESC_Shaders/BrushShader"
     {
         Pass
         {
-            CGPROGRAM
+            Tags 
+            {
+				"LightMode" = "UniversalForward"
+			}
+
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
 
@@ -19,7 +24,7 @@ Shader "ESC_Shaders/BrushShader"
 
             float4 _Tint;
 
-            struct v2f
+            struct vertexData
             {
                 float4 pos : SV_POSITION;
                 float4 color : COLOR0;
@@ -28,24 +33,27 @@ Shader "ESC_Shaders/BrushShader"
             StructuredBuffer<float3> _Positions;
             uniform float4x4 _ObjectToWorld;
 
-            v2f vert(uint svVertexID: SV_VertexID, uint svInstanceID : SV_InstanceID)
+            vertexData vert(uint svVertexID: SV_VertexID, uint svInstanceID : SV_InstanceID)
             {
                 InitIndirectDrawArgs(0);
-                v2f o;
+                vertexData vData;
+                
                 uint cmdID = GetCommandID(0);
                 uint instanceID = GetIndirectInstanceID(svInstanceID);
+
                 float3 pos = _Positions[GetIndirectVertexID(svVertexID)];
                 float4 worldPos = mul(_ObjectToWorld, float4(pos, 1.0f));
-                o.pos = mul(UNITY_MATRIX_VP, worldPos);
-                o.color = _Tint;
-                return o;
+
+                vData.pos = mul(UNITY_MATRIX_VP, worldPos);
+                vData.color = _Tint;
+                return vData;
             }
 
-            float4 frag(v2f i) : SV_Target
+            float4 frag(vertexData i) : SV_Target
             {
                 return i.color;
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }
