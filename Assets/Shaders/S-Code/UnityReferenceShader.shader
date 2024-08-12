@@ -1,4 +1,4 @@
-Shader "ESC_Shaders/BrushShader"
+Shader "ESC_Shaders/UnityReferenceShader"
 {
     SubShader
     {

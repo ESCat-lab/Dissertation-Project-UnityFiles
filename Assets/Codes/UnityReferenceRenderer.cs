@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class BrushRenderer : MonoBehaviour
+public class UnityReferenceRenderer : MonoBehaviour
 {
     public Material material;
     public Mesh mesh;
@@ -36,19 +36,26 @@ public class BrushRenderer : MonoBehaviour
     {
         RenderParams rp = new RenderParams(material);
         rp.worldBounds = new Bounds(Vector3.zero, 10000*Vector3.one); // use tighter bounds
+
+
         rp.matProps = new MaterialPropertyBlock();
         rp.matProps.SetBuffer("_Triangles", meshTriangles);
         rp.matProps.SetBuffer("_Positions", meshPositions);
         rp.matProps.SetMatrix("_ObjectToWorld", Matrix4x4.Translate(new Vector3(-4.5f, 0, 0)));
+
+
         commandData[0].indexCountPerInstance = mesh.GetIndexCount(0);
         commandData[0].baseVertexIndex = mesh.GetBaseVertex(0);
         commandData[0].startIndex = mesh.GetIndexStart(0);
         commandData[0].instanceCount = 10;
+
         commandData[1].indexCountPerInstance = mesh.GetIndexCount(0);
         commandData[1].baseVertexIndex = mesh.GetBaseVertex(0);
         commandData[1].startIndex = mesh.GetIndexStart(0);
         commandData[1].instanceCount = 10;
+
         commandBuf.SetData(commandData);
+
         Graphics.RenderPrimitivesIndexedIndirect(rp, MeshTopology.Triangles, meshTriangles, commandBuf, commandCount);
     }
 }
