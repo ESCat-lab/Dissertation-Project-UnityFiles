@@ -42,7 +42,7 @@ Shader "ESC_Shaders/BrushShader"
                 uint instanceID = GetIndirectInstanceID(svInstanceID);
 
                 uint vertexID = GetIndirectVertexID(svVertexID);
-                float3 pos = _Positions[vertexID] + float3(0,10,0);
+                float3 pos = _Positions[vertexID] + _Positions[vertexID + 1];
 
                 float4 worldPos = mul(_ObjectToWorld, float4(pos, 1.0f));
 
