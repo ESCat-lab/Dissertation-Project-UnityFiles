@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: BrushShader
-  m_Shader: {fileID: 4800000, guid: b2d689cb3f052d146bf106a9ea8afb1f, type: 3}
+  m_Shader: {fileID: 4800000, guid: 3edd0058a4243204284661cc3668b1ea, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
