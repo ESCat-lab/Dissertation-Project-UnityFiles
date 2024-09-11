@@ -60,7 +60,7 @@ Material:
     - _Noise: 1
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Scale: 0.6
+    - _Scale: 0.83
     - _Strength: 0.015
     m_Colors:
     - _Axis: {r: 0, g: 1, b: 0, a: 0}

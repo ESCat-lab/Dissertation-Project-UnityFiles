@@ -5,76 +5,75 @@ using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))] [ExecuteInEditMode]
 public class BrushRenderer : MonoBehaviour
 {
     [SerializeField]
     Mesh referenceMesh;
-    List<Vector3> tempVertices;
-    List<Vector3> tempNormals;
-    List<Vector2> tempUvs;
-    List<int> tempIndices;
+    [SerializeField]
+    float planeSize = 0.1f;
+
+    List<Vector3> CreatePlaneVertices(Vector3 spawnPosition, float planeSize)
+    {
+      List<Vector3> tempVertices = new List<Vector3>
+      {
+        spawnPosition + new Vector3(-1, 1, 0) * planeSize,
+        spawnPosition + new Vector3(-1, -1, 0) * planeSize,
+        spawnPosition + new Vector3(1, -1, 0) * planeSize,
+        spawnPosition + new Vector3(1, 1, 0) * planeSize
+      };
+
+      return tempVertices;
+    }   
+    List<Vector3> CreatePlaneNormals(Vector3 spawnNormal)
+    {
+      List<Vector3> tempNormals = new List<Vector3>()
+      {
+        spawnNormal,
+        spawnNormal,
+        spawnNormal,
+        spawnNormal
+      };
+
+      return tempNormals;
+    }
+    List<Mesh> CreatePlanes(List<Vector3> spawnPoints, List<Vector3> spawnNormals, float planeSize)
+    {
+      List<Mesh> tempMeshes = new List<Mesh>();
+
+      for(int i = 0; i < spawnPoints.Count; i++)
+      {
+        Mesh tempMesh = new Mesh { name = "Procedural Mesh no " + i };
+        tempMesh.vertices = CreatePlaneVertices(spawnPoints[i], planeSize).ToArray();
+        tempMesh.normals = CreatePlaneNormals(spawnNormals[i]).ToArray();
+        tempMeshes.Add(tempMesh);
+
+      }
+      return tempMeshes;
+    }
+
+    Mesh CombineMeshesCustom(Mesh overAllMesh, List<Mesh> meshes)
+    {
+      CombineInstance[] combineInstance = new CombineInstance[meshes.Count];
+
+      for(int i = 0; i < meshes.Count; i++)
+      {
+        combineInstance[i].mesh = meshes[i];
+      }
+
+      overAllMesh.CombineMeshes(combineInstance, true, true);
+      return overAllMesh;
+    }
+
+
 
     void OnEnable () 
     {
-		    var mesh = new Mesh { name = "Procedural Mesh" };
-        tempVertices = new List<Vector3>();
-        tempNormals = new List<Vector3>();
-        tempUvs = new List<Vector2>();
-        tempIndices = new List<int>();
+		  Mesh overAllMesh = new Mesh { name = "Combined Mesh" };
+      MeshFilter filter = GetComponent<MeshFilter>();
+      
+      List<Mesh> meshes = CreatePlanes(referenceMesh.vertices.ToList(), referenceMesh.normals.ToList(), planeSize);
+      filter.mesh = CombineMeshesCustom(overAllMesh, meshes);
 
-        Debug.Log("Normal Amount Ref: " + referenceMesh.normals.Length);
-        Debug.Log("Vertex Amount Ref: " + referenceMesh.vertices.Length);
-
-        for(int i = 0; i < referenceMesh.vertices.Length; i++)
-        {
-          Vector3 tempVertex = referenceMesh.vertices[i];
-
-          Vector3 tangent = Vector3.Cross(tempVertex - referenceMesh.vertices[(i+1)%referenceMesh.vertices.Length], referenceMesh.normals[i]).normalized;
-
-          tempVertices.Add(tempVertex +  tangent/10);
-          tempVertices.Add(tempVertex -  tangent/10);
-          tempNormals.Add(referenceMesh.normals[i]); 
-          tempNormals.Add(referenceMesh.normals[i]); 
-        }  
-
-      for(int i = 0; i < tempVertices.Count; i += 4)
-      {
-        // First triangle (i, i+1, i+2)
-        tempIndices.Add(i);
-        tempIndices.Add(i + 1);
-        tempIndices.Add(i + 2);
-
-        // Second triangle (i+2, i+3, i)
-        tempIndices.Add(i + 2);
-        tempIndices.Add(i + 3);
-        tempIndices.Add(i);
-      }
-
-        Debug.Log("Normal Amount: " + tempNormals.Count);
-        Debug.Log("Vertex Amount: " + tempVertices.Count);
-
-        mesh.vertices = tempVertices.ToArray();
-        mesh.triangles = tempIndices.ToArray();
-        mesh.normals = tempNormals.ToArray();
-        mesh.uv = tempUvs.ToArray();
-
-        GetComponent<MeshFilter>().mesh = mesh;
 	  }
-    void FixedUpdate() 
-    {
-      Color color = new Color(0.0f, 0.0f, 1.0f);
-      Color color2 = new Color(1.0f, 1.0f, 0.0f);
-      
-      for(int i = 0; i < referenceMesh.vertices.Length; i++)
-      {
-        Vector3 c0 = this.transform.position + referenceMesh.vertices[i];
-        Vector3 c1 = this.transform.position + referenceMesh.vertices[(i+1)%referenceMesh.vertices.Length];
-
-        Vector3 tangent = Vector3.Cross(c0 - c1, referenceMesh.normals[i]).normalized;
-        Debug.DrawLine(c0, c0 + tangent, color);
-        Debug.DrawLine(c0, c0 - tangent, color2);
-      }
-      
-    }
 }
