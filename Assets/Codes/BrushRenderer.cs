@@ -93,7 +93,7 @@ public class BrushRenderer : MonoBehaviour
       MeshFilter filter = GetComponent<MeshFilter>();
       
       List<Mesh> meshes = CreatePlanes(referenceMesh.vertices.ToList(), referenceMesh.normals.ToList(), planeSize);
-      CombineMeshesCustom(overAllMesh, gameObject.transform.localToWorldMatrix, meshes);
+      CombineMeshesCustom(overAllMesh, Matrix4x4.identity, meshes);
       filter.mesh = overAllMesh;
 	  }
 }
