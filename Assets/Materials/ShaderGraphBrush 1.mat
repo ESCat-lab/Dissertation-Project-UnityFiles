@@ -65,6 +65,6 @@ Material:
     m_Colors:
     - _Axis: {r: 0, g: 1, b: 0, a: 0}
     - _BaseColor: {r: 1, g: 0, b: 0, a: 0}
-    - _SecondColor: {r: 0.6981132, g: 0.20262508, b: 0.040833, a: 0}
-    - _ThirdColor: {r: 1, g: 0.4726916, b: 0.4509434, a: 0}
+    - _SecondColor: {r: 0, g: 1, b: 0.51441073, a: 0}
+    - _ThirdColor: {r: 0, g: 1, b: 0.44778585, a: 0}
   m_BuildTextureStacks: []

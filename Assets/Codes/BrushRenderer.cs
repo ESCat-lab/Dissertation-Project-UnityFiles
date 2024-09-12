@@ -11,68 +11,50 @@ public class BrushRenderer : MonoBehaviour
 {
     [SerializeField]
     Mesh referenceMesh;
-    [SerializeField]
-    float planeSize = 0.05f;
+
+    [SerializeField] [Range(0.001f, 10f)]
+    float planeSize = 1f;
+    [SerializeField] [Range(0.001f, 10f)]
+    float planeSizeX = 1f;
+    [SerializeField] [Range(0.001f, 10f)]
+    float planeSizeY = 1f;
     [SerializeField] [Range(0, 3)]
-    int planeDirection = 0;
-    
-    Vector3[] planeDirections = new Vector3[]
-    {
-      new Vector3(1, 1, 0),
-      new Vector3(1, 0, 1),
-      new Vector3(0, 1, 1),
-      new Vector3(1, 1, 1)
-    };
+    int planeDirection;
+    [SerializeField]
+    bool flipIndices = false;
 
-    int FindDirection(Vector3 spawnPosition)
+    void FindDirection(Vector3 spawnNormal)
     {
-      float mag = 1;
-      int a = 0;
-      Vector3 absPosition = new Vector3(Mathf.Abs(spawnPosition.normalized.x), Mathf.Abs(spawnPosition.normalized.y), Mathf.Abs(spawnPosition.normalized.z));
-
-      for(int i = 0; i < planeDirections.Length; i++)
+      if(Vector3.Cross(spawnNormal, new Vector3(1, 0, 0)).magnitude >= 1 )
       {
-        float tempMag = Vector3.Distance(planeDirections[i], absPosition);
-        if( tempMag < mag)
-        {
-          mag = tempMag;
-          a = i;
-        }
+        planeDirection = 0;
+        Debug.DrawLine(this.gameObject.transform.position, this.gameObject.transform.position + Vector3.Cross(spawnNormal, new Vector3(1, 0, 0)).normalized, Color.red, 10.0f);
       }
-      return a;
+      if(Vector3.Cross(spawnNormal, new Vector3(0, 1, 0)).magnitude >= 1 )
+      {
+        planeDirection = 1;
+        Debug.DrawLine(this.gameObject.transform.position, this.gameObject.transform.position + Vector3.Cross(spawnNormal, new Vector3(0, 1, 0)).normalized, Color.green, 10.0f);
+      }
+      if(Vector3.Cross(spawnNormal, new Vector3(0, 0, 1)).magnitude >= 1 )
+      {
+        planeDirection = 2; 
+        Debug.DrawLine(this.gameObject.transform.position, this.gameObject.transform.position + Vector3.Cross(spawnNormal, new Vector3(0, 0, 1)).normalized, Color.blue, 10.0f);
+      }
     }
 
-    List<Vector3> CreatePlaneVertices(int plane, Vector3 spawnPosition, Vector3 spawnNormal, float planeSize)
-    {      
+    List<Vector3> CreatePlaneVertices(int plane, Vector3 spawnPosition, Vector3 spawnNormal, float planeSizeX, float planeSizeY)
+    { 
+      planeSizeX *= 0.01f;
+      planeSizeY *= 0.01f;
+
       List<Vector3> tempVertices = new List<Vector3>{};
 
-      switch(plane) 
-      {
-        case 0:
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(-1, 1, 0)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(-1, -1, 0)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(1, -1, 0)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(1, 1, 0)).normalized * planeSize);
-          break;
-        case 1:
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(1, 0, -1)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(-1, 0, -1)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(-1, 0, 1)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(1, 0, 1)).normalized * planeSize);
-          break;
-        case 2:
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(0, -1, 1)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(0, -1, -1)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(0, 1, -1)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(0, 1, 1)).normalized * planeSize);
-          break;
-        case 3:
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(1, 1, 1)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(1, 0, 1)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(0, 0, 0)).normalized * planeSize);
-          tempVertices.Add(spawnPosition + Vector3.Cross(spawnNormal.normalized, new Vector3(0, 1, 0)).normalized * planeSize);
-          break;
-      }
+      Vector3 a = Vector3.Cross(spawnNormal.normalized, Vector3.up).normalized;
+
+      tempVertices.Add(spawnPosition - (a * planeSizeX + Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize);
+      tempVertices.Add(spawnPosition - (a * planeSizeX - Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize);
+      tempVertices.Add(spawnPosition + (a * planeSizeX + Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize);
+      tempVertices.Add(spawnPosition + (a * planeSizeX - Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize);
 
       return tempVertices;
     }   
@@ -93,54 +75,51 @@ public class BrushRenderer : MonoBehaviour
       List<int> tempIndices = new List<int>()
       {
         0,
-        1,
-        2,
-        2,
         3,
+        2,
+        2,
+        1,
         0
-      };
-      
-      float b = 0;
+      };      
 
-      switch(plane) 
-      {
-        case 0:
-          b = spawnNormal.normalized.z;
-          break;
-        case 1:
-          b = spawnNormal.normalized.y;
-          break;
-        case 2:
-          b = spawnNormal.normalized.x;
-          break;
-        case 3:
-          b = spawnNormal.normalized.x;
-          break;
-      }
-
-      if(b <= 0)
+      if(flipIndices)
       {
         tempIndices.Reverse();
       }
       
       return tempIndices;
     }
-    List<Mesh> CreatePlanes(List<Vector3> spawnPoints, List<Vector3> spawnNormals, float planeSize)
+
+    List<Vector2> CreatePlaneUVs()
+    {
+      List<Vector2> tempUVs = new List<Vector2>()
+      {
+        new Vector2(0,1),
+        new Vector2(0,0),
+        new Vector2(1,0),
+        new Vector2(1,1)
+      };
+      return tempUVs;
+    }
+
+    List<Mesh> CreatePlanes(List<Vector3> spawnPoints, List<Vector3> spawnNormals, float planeSizeX, float planeSizeY)
     {
       List<Mesh> tempMeshes = new List<Mesh>();
-
+      //Debug.Log(spawnPoints.Count);
       for(int i = 0; i < spawnPoints.Count; i++)
       {
         Mesh tempMesh = new Mesh { name = "Procedural Mesh no " + i };
-        //planeDirection = FindDirection(spawnPoints[i]);
-        tempMesh.vertices = CreatePlaneVertices(planeDirection, spawnPoints[i], spawnNormals[i], planeSize).ToArray();
+        //FindDirection(spawnNormals[i]);
+        tempMesh.vertices = CreatePlaneVertices(planeDirection, spawnPoints[i], spawnNormals[i], planeSizeX, planeSizeY).ToArray();
         tempMesh.normals = CreatePlaneNormals(spawnNormals[i]).ToArray();
+        tempMesh.uv = CreatePlaneUVs().ToArray();
         tempMesh.SetIndices(CreatePlaneIndices(planeDirection, spawnNormals[i]).ToArray(), MeshTopology.Triangles,0);
         tempMeshes.Add(tempMesh);
 
       }
       return tempMeshes;
     }
+
 
     void CombineMeshesCustom(Mesh overAllMesh, Matrix4x4 transforPosition, List<Mesh> meshes)
     {
@@ -162,8 +141,9 @@ public class BrushRenderer : MonoBehaviour
 		  Mesh overAllMesh = new Mesh { name = "Combined Mesh" };
       MeshFilter filter = GetComponent<MeshFilter>();
       
-      List<Mesh> meshes = CreatePlanes(referenceMesh.vertices.ToList(), referenceMesh.normals.ToList(), planeSize);
+      List<Mesh> meshes = CreatePlanes(referenceMesh.vertices.ToList(), referenceMesh.normals.ToList(), planeSizeX, planeSizeY);
       CombineMeshesCustom(overAllMesh, Matrix4x4.identity, meshes);
       filter.mesh = overAllMesh;
 	  }
+
 }
