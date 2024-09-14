@@ -1,9 +1,67 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.ShortcutManagement;
 using UnityEngine;
 
 public class RenderFunctions : MonoBehaviour
 {
+    class Plane 
+    {
+      Vector3[] points = new Vector3[3];
+      Vector3[] vectors = new Vector3[2];
+      public Vector3[] Points;
+      public Vector3[] Vectors;
+      public Plane(Vector3 A, Vector3 B, Vector3 C)
+      {
+        points[0] = A;
+        points[1] = B;
+        points[2] = C;
+
+        vectors[0] = B - A;
+        vectors[1] = C - A;
+
+        Points = points;
+        Vectors = vectors;
+      }
+    }
+
+    protected List<Vector3> CalculatePlaneSpawnPositions(List<Vector3> vertices, List<int> indices, Vector2Int density)
+    {
+        List<Vector3> spawnPoints = new List<Vector3>();
+        List<Vector2> spawnDensities = new List<Vector2>();
+        List<Plane> planes = new List<Plane>();
+        density = new Vector2Int(Mathf.Clamp(density.x, 1, 10), Mathf.Clamp(density.y, 1, 10));
+        
+        for(int i = 0; i < indices.Count; i =+ 3)
+        {
+            Vector3 A = vertices[indices[i]];
+            Vector3 B = vertices[indices[(i + 1) % indices.Count]];
+            Vector3 C = vertices[indices[(i + 2) % indices.Count]];
+
+            planes.Add(new Plane(A, B, C));                       
+        }
+
+        for(float t = 0; t < 1f; t =+ 1/density.x)
+        {
+            for(float h = 0; h < 1f; h =+ 1/density.y)
+            {
+              Vector2 amount = new Vector2(t, h);
+              spawnDensities.Add(amount);
+            }
+        } 
+
+        for(int i = 0; i < planes.Count; i++)
+        {
+          for(int t = 0; t < spawnDensities.Count; t++)
+          {
+            Vector3 P = planes[i].Vectors[0] + (planes[i].Vectors[0] * spawnDensities[t].x) + (planes[i].Vectors[1] * spawnDensities[t].y);
+            spawnPoints.Add(P);
+          }
+        }
+
+        return spawnPoints;
+    }
+
     protected List<Vector3> CreatePlaneVertices(Vector3 spawnPosition, Vector3 spawnNormal, float planeSize, Vector2Int XYRatio)
     { 
       XYRatio = new Vector2Int(Mathf.Clamp(XYRatio.x, 1, 10000), Mathf.Clamp(XYRatio.y, 1, 10000));
@@ -21,7 +79,7 @@ public class RenderFunctions : MonoBehaviour
 
       return tempVertices;
     }   
-    
+
     protected List<Vector3> CreatePlaneNormals(Vector3 spawnNormal)
     {
       List<Vector3> tempNormals = new List<Vector3>()
