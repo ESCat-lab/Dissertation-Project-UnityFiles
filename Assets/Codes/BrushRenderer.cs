@@ -11,13 +11,11 @@ public class BrushRenderer : MonoBehaviour
 {
     [SerializeField]
     Mesh referenceMesh;
+    [SerializeField]
+    Vector2Int XYRatio = new Vector2Int(1,1);
+    [SerializeField] [Range(0.1f, 1f)]
+    float planeSize = 0.5f;
 
-    [SerializeField] [Range(0.001f, 10f)]
-    float planeSize = 1f;
-    [SerializeField] [Range(0.001f, 10f)]
-    float planeSizeX = 1f;
-    [SerializeField] [Range(0.001f, 10f)]
-    float planeSizeY = 1f;
     [SerializeField] [Range(0, 3)]
     int planeDirection;
     [SerializeField]
@@ -42,10 +40,11 @@ public class BrushRenderer : MonoBehaviour
       }
     }
 
-    List<Vector3> CreatePlaneVertices(int plane, Vector3 spawnPosition, Vector3 spawnNormal, float planeSizeX, float planeSizeY)
+    List<Vector3> CreatePlaneVertices(int plane, Vector3 spawnPosition, Vector3 spawnNormal, float planeSize, Vector2Int XYRatio)
     { 
-      planeSizeX *= 0.01f;
-      planeSizeY *= 0.01f;
+      XYRatio = new Vector2Int(Math.Clamp(XYRatio.x, 1, 10000), Math.Clamp(XYRatio.y, 1, 10000));
+      float planeSizeX = planeSize * XYRatio.x / (XYRatio.x + XYRatio.y);
+      float planeSizeY = planeSize * XYRatio.y / (XYRatio.x + XYRatio.y);
 
       List<Vector3> tempVertices = new List<Vector3>{};
 
@@ -102,7 +101,7 @@ public class BrushRenderer : MonoBehaviour
       return tempUVs;
     }
 
-    List<Mesh> CreatePlanes(List<Vector3> spawnPoints, List<Vector3> spawnNormals, float planeSizeX, float planeSizeY)
+    List<Mesh> CreatePlanes(List<Vector3> spawnPoints, List<Vector3> spawnNormals, float planeSize, Vector2Int XYRatio)
     {
       List<Mesh> tempMeshes = new List<Mesh>();
       //Debug.Log(spawnPoints.Count);
@@ -110,7 +109,7 @@ public class BrushRenderer : MonoBehaviour
       {
         Mesh tempMesh = new Mesh { name = "Procedural Mesh no " + i };
         //FindDirection(spawnNormals[i]);
-        tempMesh.vertices = CreatePlaneVertices(planeDirection, spawnPoints[i], spawnNormals[i], planeSizeX, planeSizeY).ToArray();
+        tempMesh.vertices = CreatePlaneVertices(planeDirection, spawnPoints[i], spawnNormals[i], planeSize, XYRatio).ToArray();
         tempMesh.normals = CreatePlaneNormals(spawnNormals[i]).ToArray();
         tempMesh.uv = CreatePlaneUVs().ToArray();
         tempMesh.SetIndices(CreatePlaneIndices(planeDirection, spawnNormals[i]).ToArray(), MeshTopology.Triangles,0);
@@ -141,7 +140,7 @@ public class BrushRenderer : MonoBehaviour
 		  Mesh overAllMesh = new Mesh { name = "Combined Mesh" };
       MeshFilter filter = GetComponent<MeshFilter>();
       
-      List<Mesh> meshes = CreatePlanes(referenceMesh.vertices.ToList(), referenceMesh.normals.ToList(), planeSizeX, planeSizeY);
+      List<Mesh> meshes = CreatePlanes(referenceMesh.vertices.ToList(), referenceMesh.normals.ToList(), planeSize, XYRatio);
       CombineMeshesCustom(overAllMesh, Matrix4x4.identity, meshes);
       filter.mesh = overAllMesh;
 	  }
