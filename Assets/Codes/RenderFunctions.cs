@@ -32,23 +32,20 @@ public class RenderFunctions : MonoBehaviour
         List<Plane> planes = new List<Plane>();
         density = Mathf.Clamp(density, 1, 10);
         int planeCount = Mathf.CeilToInt(vertices.Count / 3);
-        float pointDensity = 1f/density;
         
         
         for(int i = 0; i < planeCount; i++)
         {
-            planes.Add(new Plane(vertices[i], vertices[(i + 1) % vertices.Count], vertices[(i + 2) % vertices.Count]));                      
-        }
-        
-        for(int i = 0; i < planes.Count; i++)
-        {
-          for(float t = 0; t < 1f; t =+ pointDensity)
-          {
-              Vector3 P = planes[i].Vectors[0] + (planes[i].Vectors[0] * t) + (planes[i].Vectors[1] * t);
+            planes.Add(new Plane(vertices[i], vertices[(i + 1) % vertices.Count], vertices[(i + 2) % vertices.Count]));
+            for(int t = 1; t < density; t++)
+            {
+              float pointDensity = 1f/t;
+              Vector3 P = planes[i].Points[0] + (planes[i].Vectors[0] * pointDensity) + (planes[i].Vectors[1] * pointDensity);
               spawnPoints.Add(P);
               //Debug.Log(P);
-          }
+            }                      
         }
+        
         //Debug.Log(pointDensity);
 
         return spawnPoints;
