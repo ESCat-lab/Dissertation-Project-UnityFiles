@@ -25,39 +25,31 @@ public class RenderFunctions : MonoBehaviour
       }
     }
 
-    protected List<Vector3> CalculatePlaneSpawnPositions(List<Vector3> vertices, List<int> indices, Vector2Int density)
+    protected List<Vector3> CalculatePlaneSpawnPositions(List<Vector3> vertices, List<int> indices, int density)
     {
         List<Vector3> spawnPoints = new List<Vector3>();
         List<Vector2> spawnDensities = new List<Vector2>();
         List<Plane> planes = new List<Plane>();
-        density = new Vector2Int(Mathf.Clamp(density.x, 1, 10), Mathf.Clamp(density.y, 1, 10));
+        density = Mathf.Clamp(density, 1, 10);
+        int planeCount = Mathf.CeilToInt(vertices.Count / 3);
+        float pointDensity = 1f/density;
         
-        for(int i = 0; i < indices.Count; i =+ 3)
+        
+        for(int i = 0; i < planeCount; i++)
         {
-            Vector3 A = vertices[indices[i]];
-            Vector3 B = vertices[indices[(i + 1) % indices.Count]];
-            Vector3 C = vertices[indices[(i + 2) % indices.Count]];
-
-            planes.Add(new Plane(A, B, C));                       
+            planes.Add(new Plane(vertices[i], vertices[(i + 1) % vertices.Count], vertices[(i + 2) % vertices.Count]));                      
         }
-
-        for(float t = 0; t < 1f; t =+ 1/density.x)
-        {
-            for(float h = 0; h < 1f; h =+ 1/density.y)
-            {
-              Vector2 amount = new Vector2(t, h);
-              spawnDensities.Add(amount);
-            }
-        } 
-
+        
         for(int i = 0; i < planes.Count; i++)
         {
-          for(int t = 0; t < spawnDensities.Count; t++)
+          for(float t = 0; t < 1f; t =+ pointDensity)
           {
-            Vector3 P = planes[i].Vectors[0] + (planes[i].Vectors[0] * spawnDensities[t].x) + (planes[i].Vectors[1] * spawnDensities[t].y);
-            spawnPoints.Add(P);
+              Vector3 P = planes[i].Vectors[0] + (planes[i].Vectors[0] * t) + (planes[i].Vectors[1] * t);
+              spawnPoints.Add(P);
+              //Debug.Log(P);
           }
         }
+        //Debug.Log(pointDensity);
 
         return spawnPoints;
     }
