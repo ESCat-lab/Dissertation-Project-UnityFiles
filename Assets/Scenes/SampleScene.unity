@@ -205,7 +205,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   referenceMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
-  XYRatio: {x: 1, y: 1}
+  XYRatio: {x: 3, y: 1}
+  brushDensity: 10
   planeSize: 0.5
   flipIndices: 0
 --- !u!23 &66026075
@@ -273,7 +274,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &77669363
 Transform:
   m_ObjectHideFlags: 0
@@ -1694,7 +1695,8 @@ MonoBehaviour:
   referenceMesh: {fileID: -2432090755550338912, guid: dec6a99fa18e96144946a0efa4525207,
     type: 3}
   XYRatio: {x: 3, y: 1}
-  planeSize: 0.482
+  brushDensity: 10
+  planeSize: 0.5
   flipIndices: 0
 --- !u!23 &1142306843
 MeshRenderer:
@@ -2063,7 +2065,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   referenceMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  XYRatio: {x: 1, y: 1}
+  XYRatio: {x: 3, y: 1}
+  brushDensity: 10
   planeSize: 0.5
   flipIndices: 0
 --- !u!23 &1478542316

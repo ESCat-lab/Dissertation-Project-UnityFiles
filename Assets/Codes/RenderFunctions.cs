@@ -5,50 +5,44 @@ using UnityEngine;
 
 public class RenderFunctions : MonoBehaviour
 {
-    class Plane 
-    {
-      Vector3[] points = new Vector3[3];
-      Vector3[] vectors = new Vector3[2];
-      public Vector3[] Points;
-      public Vector3[] Vectors;
-      public Plane(Vector3 A, Vector3 B, Vector3 C)
-      {
-        points[0] = A;
-        points[1] = B;
-        points[2] = C;
-
-        vectors[0] = B - A;
-        vectors[1] = C - A;
-
-        Points = points;
-        Vectors = vectors;
-      }
-    }
-
-    protected List<Vector3> CalculatePlaneSpawnPositions(List<Vector3> vertices, List<int> indices, int density)
+    protected List<Vector3>[] CalculatePlaneSpawnPositions(List<Vector3> vertices, List<Vector3> normals, int density)
     {
         List<Vector3> spawnPoints = new List<Vector3>();
-        List<Vector2> spawnDensities = new List<Vector2>();
-        List<Plane> planes = new List<Plane>();
-        density = Mathf.Clamp(density, 1, 10);
-        int planeCount = Mathf.CeilToInt(vertices.Count / 3);
+        List<Vector3> spawnNormals = new List<Vector3>();
+        density = Mathf.Clamp(density, 1, 100);
+        int planeCount = Mathf.CeilToInt(vertices.Count / 3);        
         
-        
-        for(int i = 0; i < planeCount; i++)
+        for(int i = 0; i < vertices.Count; i++)
         {
-            planes.Add(new Plane(vertices[i], vertices[(i + 1) % vertices.Count], vertices[(i + 2) % vertices.Count]));
+            Vector3 A;
+            Vector3 B;
+            Vector3 C;
+
+            if(i % 3 == 0)
+            {
+              A = vertices[i];
+              B = vertices[(i + 1) % vertices.Count];
+              C = vertices[(i + 2) % vertices.Count];
+            }else
+            {
+              A = vertices[(i + 2) % vertices.Count];
+              B = vertices[i];
+              C = vertices[(i + 1) % vertices.Count];
+            }            
+
             for(int t = 1; t < density; t++)
             {
-              float pointDensity = 1f/t;
-              Vector3 P = planes[i].Points[0] + (planes[i].Vectors[0] * pointDensity) + (planes[i].Vectors[1] * pointDensity);
+              float pointDensity = 1f/t;          
+              Vector3 P = (1-Mathf.Sqrt(pointDensity)) * A + (Mathf.Sqrt(pointDensity) * (1 - pointDensity)) * B + pointDensity * (Mathf.Sqrt(pointDensity)) * C;
+              //P=(1−a−−√)v1+(a−−√(1−b))v2+(ba−−√)v3
               spawnPoints.Add(P);
-              //Debug.Log(P);
+              //spawnNormals.Add(Vector3.Cross(A-B, A-C));
+              spawnNormals.Add(normals[i]);
+              //Debug.DrawLine(A, P, Color.blue, 100f);
             }                      
         }
-        
-        //Debug.Log(pointDensity);
-
-        return spawnPoints;
+               
+        return new List<Vector3>[2] {spawnPoints, spawnNormals};
     }
 
     protected List<Vector3> CreatePlaneVertices(Vector3 spawnPosition, Vector3 spawnNormal, float planeSize, Vector2Int XYRatio)

@@ -14,7 +14,7 @@ public class BrushRenderer : RenderFunctions
     [SerializeField]
     Vector2Int XYRatio = new Vector2Int(3,1);
     [SerializeField]
-    int brushDensity = 5;
+    int brushDensity = 10;
     [SerializeField] [Range(0.1f, 1f)]
     float planeSize = 0.5f;
     [SerializeField]
@@ -23,11 +23,11 @@ public class BrushRenderer : RenderFunctions
     void OnEnable () 
     {
 	    Mesh overAllMesh = new Mesh { name = "Combined Mesh" };
+        overAllMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         MeshFilter filter = GetComponent<MeshFilter>();
 
-        List<Vector3> spawnPos = CalculatePlaneSpawnPositions(referenceMesh.vertices.ToList(), referenceMesh.GetIndices(0).ToList(), brushDensity);
-
-        List<Mesh> meshes = CreatePlanes(referenceMesh.vertices.ToList(), referenceMesh.normals.ToList(), planeSize, XYRatio, flipIndices);
+        List<Vector3>[] spawnPos = CalculatePlaneSpawnPositions(referenceMesh.vertices.ToList(), referenceMesh.normals.ToList(), brushDensity);
+        List<Mesh> meshes = CreatePlanes(spawnPos[0], spawnPos[1], planeSize, XYRatio, flipIndices);
         CombineMeshesCustom(overAllMesh, Matrix4x4.identity, meshes);
         filter.mesh = overAllMesh;
 	}
