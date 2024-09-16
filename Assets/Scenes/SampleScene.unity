@@ -2153,7 +2153,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   referenceMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   XYRatio: {x: 1, y: 1}
-  brushDensity: 2
+  brushDensity: 10
   distributionX: 1
   distributionY: 0
   planeSize: 0.492

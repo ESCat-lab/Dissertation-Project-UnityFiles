@@ -36,7 +36,7 @@ public class RenderFunctions : MonoBehaviour
             pCorners.Add(vertices[indices[i]]);
             pNormals.Add(normals[indices[i]]);   
 
-            if(i % 3 == 0 && i != 0)
+            if(i % 3 == 2 && i != 0)
             {
               triangles.Add(new Triangle(pCorners.ToArray(), pNormals.ToArray()));
               pCorners.Clear();
