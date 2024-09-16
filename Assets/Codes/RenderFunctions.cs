@@ -69,20 +69,28 @@ public class RenderFunctions : MonoBehaviour
 
             //Debug.Log(A + " " + B + " " + C);
 
-            for(int t = 0; t < density; t++)
-            {
-              float pointDensityA = (t * distribution.x/2f)/density;
-              float pointDensityB = (t * distribution.y/2f)/density;
+          for (int t = 0; t < density; t++)
+          {
+            // Generate two random values between 0 and 1
+            float pointDensityA = Random.Range(0f, 1f);
+            float pointDensityB = Random.Range(0f, 1f);
 
-              float pDensityASquared = Mathf.Sqrt(pointDensityA);
-              Vector3 P = (1 - pDensityASquared) * A + pDensityASquared * (1 - pointDensityB) * B + pointDensityB * pDensityASquared * C;
-              spawnPoints.Add(P);
-              
-              Vector3 N = new Vector3((nA.x + nB.x + nC.x)/3, (nA.y + nB.y + nC.y)/3, (nA.z + nB.z + nC.z)/3).normalized;
-              spawnNormals.Add(N);
-              //Debug.DrawLine(A, B, Color.red, 100f);
-              //Debug.DrawLine(B, C, Color.blue, 100f);
-            }  
+            // Ensure the points are inside the triangle (barycentric coordinate system)
+            if (pointDensityA + pointDensityB > 1f)
+            {
+              pointDensityA = 1f - pointDensityA;
+              pointDensityB = 1f - pointDensityB;
+            }
+
+            // Compute point on the plane by linear combination of triangle vertices
+            Vector3 P = A + pointDensityA * (B - A) + pointDensityB * (C - A);
+            spawnPoints.Add(P);
+
+            // Average the normals and add to the spawnNormals list
+            Vector3 N = (nA + nB + nC) / 3f;
+            spawnNormals.Add(N.normalized);
+          }
+
         }
 
         return new List<Vector3>[2] {spawnPoints, spawnNormals};
