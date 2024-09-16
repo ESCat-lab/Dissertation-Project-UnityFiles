@@ -1,19 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
 
 public class RenderFunctions : MonoBehaviour
 {
-    protected class Plane 
+    protected class Triangle 
     {
-      List<Vector3> corners = new List<Vector3>();
-      List<Vector3> normals = new List<Vector3>();
+      Vector3[] corners = new Vector3[3];
+      Vector3[] normals = new Vector3[3];
 
-      public List<Vector3> Corners;
-      public List<Vector3> Normals;
+      public Vector3[] Corners;
+      public Vector3[] Normals;
 
-      public Plane(List<Vector3> corners, List<Vector3> normals)
+      public Triangle(Vector3[] corners, Vector3[] normals)
       {
         this.corners = corners;
         this.normals = normals;
@@ -24,71 +25,66 @@ public class RenderFunctions : MonoBehaviour
 
     }
 
-    protected List<Plane> ExtrapolateRefPlanes(List<Vector3> vertices, List<Vector3> normals, List<int> indices)
+    protected List<Triangle> ExtrapolateRefPlanes(List<Vector3> vertices, List<Vector3> normals, List<int> indices)
     {
-        List<Plane> planes = new List<Plane>();
+        List<Triangle> triangles = new List<Triangle>();
         List<Vector3> pCorners = new List<Vector3>();
         List<Vector3> pNormals = new List<Vector3>();       
         
-        for(int i = 0; i < vertices.Count; i++)
+        for(int i = 0; i < indices.Count; i++)
         {
+            pCorners.Add(vertices[indices[i]]);
+            pNormals.Add(normals[indices[i]]);   
+
             if(i % 3 == 0 && i != 0)
             {
-              planes.Add(new Plane(pCorners, pNormals));
+              triangles.Add(new Triangle(pCorners.ToArray(), pNormals.ToArray()));
               pCorners.Clear();
               pNormals.Clear();
-            }
-
-            pCorners.Add(vertices[indices[i]]);
-            pNormals.Add(normals[indices[i]]);
-
+            }       
         }
-        return planes;
+        return triangles;
     }
 
-    protected List<Vector3>[] CalculatePlaneSpawnPositions(List<Vector3> vertices, List<Vector3> normals, List<int> indices, int density)
+    protected List<Vector3>[] CalculatePlaneSpawnPositions(List<Vector3> vertices, List<Vector3> normals, List<int> indices, int density, Vector2 distribution)
     {
         List<Vector3> spawnPoints = new List<Vector3>();
         List<Vector3> spawnNormals = new List<Vector3>();
+
         density = Mathf.Clamp(density, 1, 100);
-        int planeCount = Mathf.CeilToInt(vertices.Count / 3);        
-        
-        for(int i = 0; i < indices.Count; i++)
+
+        List<Triangle> triangles = ExtrapolateRefPlanes(vertices, normals, indices);
+
+        //Debug.Log(triangles.Count);
+
+        foreach(Triangle triangle in triangles)
         {
-            Vector3 A;
-            Vector3 B;
-            Vector3 C;
-            
-            Vector3 nA;
-            Vector3 nB;
-            Vector3 nC;            
+            Vector3 A = triangle.Corners[0];
+            Vector3 B = triangle.Corners[1];
+            Vector3 C = triangle.Corners[2];
 
-            A = vertices[indices[i]];
-            B = vertices[indices[(i + 1) % indices.Count]];
-            C = vertices[indices[(i + 2) % indices.Count]];
+            Vector3 nA = triangle.Normals[0];
+            Vector3 nB = triangle.Normals[1];
+            Vector3 nC = triangle.Normals[2];
 
-            nA = normals[indices[i]];
-            nB = normals[indices[(i + 1) % indices.Count]];
-            nC = normals[indices[(i + 2) % indices.Count]];        
+            //Debug.Log(A + " " + B + " " + C);
 
-            for(int t = 1; t < density; t++)
+            for(int t = 0; t < density; t++)
             {
-              float pointDensityA = 1f * t/density;
-              float pointDensityB = (1f - pointDensityA)/density;
+              float pointDensityA = (t * distribution.x/2f)/density;
+              float pointDensityB = (t * distribution.y/2f)/density;
 
               float pDensityASquared = Mathf.Sqrt(pointDensityA);
-
-              //P = (1 − √a)v1 + (a√(1 − b))v2 + (b√a)v3
-              //where a,b ~ U[0,1]
               Vector3 P = (1 - pDensityASquared) * A + pDensityASquared * (1 - pointDensityB) * B + pointDensityB * pDensityASquared * C;
               spawnPoints.Add(P);
               
               Vector3 N = new Vector3((nA.x + nB.x + nC.x)/3, (nA.y + nB.y + nC.y)/3, (nA.z + nB.z + nC.z)/3).normalized;
               spawnNormals.Add(N);
-              //Debug.DrawLine(A, P, Color.blue, 100f);
-            }                      
+              //Debug.DrawLine(A, B, Color.red, 100f);
+              //Debug.DrawLine(B, C, Color.blue, 100f);
+            }  
         }
-               
+
         return new List<Vector3>[2] {spawnPoints, spawnNormals};
     }
 
