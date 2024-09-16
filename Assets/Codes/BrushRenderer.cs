@@ -22,11 +22,17 @@ public class BrushRenderer : RenderFunctions
 
     void OnEnable () 
     {
+        List<Vector3> vertices = referenceMesh.vertices.ToList();
+        List<int> indices = referenceMesh.triangles.ToList();
+
+        Debug.Log("vertices count: " + vertices.Count);
+        Debug.Log("indices count: " + indices.Count);
+
 	    Mesh overAllMesh = new Mesh { name = "Combined Mesh" };
         overAllMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         MeshFilter filter = GetComponent<MeshFilter>();
 
-        List<Vector3>[] spawnPos = CalculatePlaneSpawnPositions(referenceMesh.vertices.ToList(), referenceMesh.normals.ToList(), brushDensity);
+        List<Vector3>[] spawnPos = CalculatePlaneSpawnPositions(vertices, referenceMesh.normals.ToList(), indices, brushDensity);
         List<Mesh> meshes = CreatePlanes(spawnPos[0], spawnPos[1], planeSize, XYRatio, flipIndices);
         CombineMeshesCustom(overAllMesh, Matrix4x4.identity, meshes);
         filter.mesh = overAllMesh;

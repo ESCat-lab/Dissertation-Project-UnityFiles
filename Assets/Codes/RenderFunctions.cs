@@ -5,39 +5,86 @@ using UnityEngine;
 
 public class RenderFunctions : MonoBehaviour
 {
-    protected List<Vector3>[] CalculatePlaneSpawnPositions(List<Vector3> vertices, List<Vector3> normals, int density)
+    protected class Plane 
+    {
+      List<Vector3> corners = new List<Vector3>();
+      List<Vector3> normals = new List<Vector3>();
+
+      public List<Vector3> Corners;
+      public List<Vector3> Normals;
+
+      public Plane(List<Vector3> corners, List<Vector3> normals)
+      {
+        this.corners = corners;
+        this.normals = normals;
+
+        Corners = corners;
+        Normals = normals;
+      }
+
+    }
+
+    protected List<Plane> ExtrapolateRefPlanes(List<Vector3> vertices, List<Vector3> normals, List<int> indices)
+    {
+        List<Plane> planes = new List<Plane>();
+        List<Vector3> pCorners = new List<Vector3>();
+        List<Vector3> pNormals = new List<Vector3>();       
+        
+        for(int i = 0; i < vertices.Count; i++)
+        {
+            if(i % 3 == 0 && i != 0)
+            {
+              planes.Add(new Plane(pCorners, pNormals));
+              pCorners.Clear();
+              pNormals.Clear();
+            }
+
+            pCorners.Add(vertices[indices[i]]);
+            pNormals.Add(normals[indices[i]]);
+
+        }
+        return planes;
+    }
+
+    protected List<Vector3>[] CalculatePlaneSpawnPositions(List<Vector3> vertices, List<Vector3> normals, List<int> indices, int density)
     {
         List<Vector3> spawnPoints = new List<Vector3>();
         List<Vector3> spawnNormals = new List<Vector3>();
         density = Mathf.Clamp(density, 1, 100);
         int planeCount = Mathf.CeilToInt(vertices.Count / 3);        
         
-        for(int i = 0; i < vertices.Count; i++)
+        for(int i = 0; i < indices.Count; i++)
         {
             Vector3 A;
             Vector3 B;
             Vector3 C;
+            
+            Vector3 nA;
+            Vector3 nB;
+            Vector3 nC;            
 
-            if(i % 3 == 0)
-            {
-              A = vertices[i];
-              B = vertices[(i + 1) % vertices.Count];
-              C = vertices[(i + 2) % vertices.Count];
-            }else
-            {
-              A = vertices[(i + 2) % vertices.Count];
-              B = vertices[i];
-              C = vertices[(i + 1) % vertices.Count];
-            }            
+            A = vertices[indices[i]];
+            B = vertices[indices[(i + 1) % indices.Count]];
+            C = vertices[indices[(i + 2) % indices.Count]];
+
+            nA = normals[indices[i]];
+            nB = normals[indices[(i + 1) % indices.Count]];
+            nC = normals[indices[(i + 2) % indices.Count]];        
 
             for(int t = 1; t < density; t++)
             {
-              float pointDensity = 1f/t;          
-              Vector3 P = (1-Mathf.Sqrt(pointDensity)) * A + (Mathf.Sqrt(pointDensity) * (1 - pointDensity)) * B + pointDensity * (Mathf.Sqrt(pointDensity)) * C;
-              //P=(1−a−−√)v1+(a−−√(1−b))v2+(ba−−√)v3
+              float pointDensityA = 1f * t/density;
+              float pointDensityB = (1f - pointDensityA)/density;
+
+              float pDensityASquared = Mathf.Sqrt(pointDensityA);
+
+              //P = (1 − √a)v1 + (a√(1 − b))v2 + (b√a)v3
+              //where a,b ~ U[0,1]
+              Vector3 P = (1 - pDensityASquared) * A + pDensityASquared * (1 - pointDensityB) * B + pointDensityB * pDensityASquared * C;
               spawnPoints.Add(P);
-              //spawnNormals.Add(Vector3.Cross(A-B, A-C));
-              spawnNormals.Add(normals[i]);
+              
+              Vector3 N = new Vector3((nA.x + nB.x + nC.x)/3, (nA.y + nB.y + nC.y)/3, (nA.z + nB.z + nC.z)/3).normalized;
+              spawnNormals.Add(N);
               //Debug.DrawLine(A, P, Color.blue, 100f);
             }                      
         }
