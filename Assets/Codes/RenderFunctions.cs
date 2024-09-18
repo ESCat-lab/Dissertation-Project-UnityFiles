@@ -87,7 +87,8 @@ public class RenderFunctions : MonoBehaviour
             spawnPoints.Add(P);
 
             // Average the normals and add to the spawnNormals list
-            Vector3 N = (nA + nB + nC) / 3f;
+            //Vector3 N = (nA + nB + nC) / 3f; //Cross product
+            Vector3 N = Vector3.Cross(B - A, C - A);
             spawnNormals.Add(N.normalized);
           }
 
