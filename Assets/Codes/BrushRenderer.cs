@@ -15,10 +15,8 @@ public class BrushRenderer : RenderFunctions
     Vector2Int XYRatio = new Vector2Int(3,1);
     [SerializeField]
     int brushDensity = 10;
-    [SerializeField] [Range(0f, 1f)]
-    float distributionX = 0.5f;
-    [SerializeField] [Range(0f, 1f)]
-    float distributionY = 0.5f;
+    [SerializeField]
+    int seed = 42;
     [SerializeField] [Range(0.1f, 1f)]
     float planeSize = 0.5f;
     [SerializeField]
@@ -26,7 +24,6 @@ public class BrushRenderer : RenderFunctions
 
     void OnEnable () 
     {
-        Vector2 distribution = new Vector2(distributionX, distributionY);
         List<Vector3> vertices = referenceMesh.vertices.ToList();
         List<int> indices = referenceMesh.triangles.ToList();
 
@@ -37,7 +34,7 @@ public class BrushRenderer : RenderFunctions
         overAllMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         MeshFilter filter = GetComponent<MeshFilter>();
 
-        List<Vector3>[] spawnPos = CalculatePlaneSpawnPositions(vertices, referenceMesh.normals.ToList(), indices, brushDensity, distribution);
+        List<Vector3>[] spawnPos = CalculatePlaneSpawnPositions(vertices, referenceMesh.normals.ToList(), indices, brushDensity, seed);
         overAllMesh = CreatePlanes(spawnPos[0], spawnPos[1], planeSize, XYRatio, flipIndices);
         filter.mesh = overAllMesh;
 	}

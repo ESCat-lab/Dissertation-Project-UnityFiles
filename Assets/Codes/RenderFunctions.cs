@@ -47,7 +47,7 @@ public class RenderFunctions : MonoBehaviour
         return triangles;
     }
 
-    protected List<Vector3>[] CalculatePlaneSpawnPositions(List<Vector3> vertices, List<Vector3> normals, List<int> indices, int density, Vector2 distribution)
+    protected List<Vector3>[] CalculatePlaneSpawnPositions(List<Vector3> vertices, List<Vector3> normals, List<int> indices, int density, int seed)
     {
         List<Vector3> spawnPoints = new List<Vector3>();
         List<Vector3> spawnNormals = new List<Vector3>();
@@ -72,7 +72,7 @@ public class RenderFunctions : MonoBehaviour
 
           for (int t = 0; t < density; t++)
           {
-            Random.InitState(42 + t);
+            Random.InitState(seed + t);
             // Generate two random values between 0 and 1
             float pointDensityA = Random.Range(0f, 1f);
             float pointDensityB = Random.Range(0f, 1f);
