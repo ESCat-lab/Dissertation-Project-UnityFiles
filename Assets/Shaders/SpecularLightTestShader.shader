@@ -4,6 +4,7 @@ Shader "ESC_Shaders/SpecularLightTestShader"
 {
     Properties
     {
+        _BaseMap ("Base Map", 2D) = "white" {}
         _Tint ("Tint", Color) = (1,1,1,1)
         _Smoothness ("Smoothness", Range(0, 1)) = 0.5
         _SpecularTint ("Specular", Color) = (0.5, 0.5, 0.5)
@@ -11,12 +12,14 @@ Shader "ESC_Shaders/SpecularLightTestShader"
 
     SubShader 
     {
+        Tags { "RenderType"="Transparent" "Queue"="Transparent" }
 
 		Pass {
-            Tags 
-            {
-				"LightMode" = "UniversalForward"
-			}
+            Tags { "LightMode" = "UniversalForward" }
+            Cull Back      // Render the front-facing triangles
+            ZWrite On       // Enable depth writing
+            ZTest LEqual    // Test depth for proper order
+            Blend SrcAlpha OneMinusSrcAlpha  // Standard alpha blending
 
             HLSLPROGRAM
 			#pragma vertex MyVertexProgram
@@ -25,7 +28,8 @@ Shader "ESC_Shaders/SpecularLightTestShader"
             //#include "UnityCG.cginc"
             //code below includes it
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
+            
+            sampler2D _BaseMap;
             float4 _Tint;
             float _Smoothness;
             float4 _SpecularTint;
@@ -59,7 +63,7 @@ Shader "ESC_Shaders/SpecularLightTestShader"
                 return i;
 			}
 
-			float4 MyFragmentProgram (Interpolators i) :SV_TARGET
+			half4 MyFragmentProgram (Interpolators i) :SV_TARGET
             {
                 //this is a small correction that can be removed to optimize
 				i.normal = normalize(i.normal);
@@ -75,10 +79,12 @@ Shader "ESC_Shaders/SpecularLightTestShader"
                 float3 specular = _SpecularTint.rgb *lightColor * pow(
 					clamp(dot(halfVector, i.normal),0,1),
 					clamp(_Smoothness, 0.0001, 1) * 100
-				);           
-                return float4(diffuse + specular, 1);
+				);
+                half4 texColor = tex2D(_BaseMap, i.uv) * float4(diffuse + specular, 1);           
+                return texColor;
 			}
             ENDHLSL
 		}
 	}
+    FallBack Off
 }

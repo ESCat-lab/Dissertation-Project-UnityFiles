@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
 
@@ -71,6 +72,7 @@ public class RenderFunctions : MonoBehaviour
 
           for (int t = 0; t < density; t++)
           {
+            Random.InitState(42 + t);
             // Generate two random values between 0 and 1
             float pointDensityA = Random.Range(0f, 1f);
             float pointDensityB = Random.Range(0f, 1f);
@@ -106,11 +108,12 @@ public class RenderFunctions : MonoBehaviour
       List<Vector3> tempVertices = new List<Vector3>{};
 
       Vector3 a = Vector3.Cross(spawnNormal.normalized, Vector3.up).normalized;
+      Vector3 zOffset = spawnNormal.normalized * Random.Range(-0.01f,0.01f);
 
-      tempVertices.Add(spawnPosition - (a * planeSizeX + Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize);
-      tempVertices.Add(spawnPosition - (a * planeSizeX - Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize);
-      tempVertices.Add(spawnPosition + (a * planeSizeX + Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize);
-      tempVertices.Add(spawnPosition + (a * planeSizeX - Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize);
+      tempVertices.Add(spawnPosition - (a * planeSizeX + Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize + zOffset);
+      tempVertices.Add(spawnPosition - (a * planeSizeX - Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize + zOffset);
+      tempVertices.Add(spawnPosition + (a * planeSizeX + Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize + zOffset);
+      tempVertices.Add(spawnPosition + (a * planeSizeX - Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize + zOffset);
 
       return tempVertices;
     }   
@@ -128,16 +131,16 @@ public class RenderFunctions : MonoBehaviour
       return tempNormals;
     }
    
-    protected List<int> CreatePlaneIndices(bool flipIndices)
+    protected List<int> CreatePlaneIndices(bool flipIndices, int i)
     {
       List<int> tempIndices = new List<int>()
       {
-        0,
-        3,
-        2,
-        2,
-        1,
-        0
+        0 + i * 4,
+        3 + i * 4,
+        2 + i * 4,
+        2 + i * 4,
+        1 + i * 4,
+        0 + i * 4
       };      
 
       if(flipIndices)
@@ -160,22 +163,41 @@ public class RenderFunctions : MonoBehaviour
       return tempUVs;
     }
 
-    protected List<Mesh> CreatePlanes(List<Vector3> spawnPoints, List<Vector3> spawnNormals, float planeSize, Vector2Int XYRatio, bool flipIndices)
+    protected Mesh CreatePlanes(List<Vector3> spawnPoints, List<Vector3> spawnNormals, float planeSize, Vector2Int XYRatio, bool flipIndices)
     {
-      List<Mesh> tempMeshes = new List<Mesh>();
+      Mesh tempMesh = new Mesh();
+      tempMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+      List<Vector3> tempVertices = new List<Vector3>();
+      List<Vector3> tempNormals = new List<Vector3>();
+      List<Vector2> tempUvs = new List<Vector2>();
+      List<int> tempIndices = new List<int>();
       //Debug.Log(spawnPoints.Count);
+
       for(int i = 0; i < spawnPoints.Count; i++)
       {
-        Mesh tempMesh = new Mesh { name = "Procedural Mesh no " + i };
-        //FindDirection(spawnNormals[i]);
-        tempMesh.vertices = CreatePlaneVertices(spawnPoints[i], spawnNormals[i], planeSize, XYRatio).ToArray();
-        tempMesh.normals = CreatePlaneNormals(spawnNormals[i]).ToArray();
-        tempMesh.uv = CreatePlaneUVs().ToArray();
-        tempMesh.SetIndices(CreatePlaneIndices(flipIndices).ToArray(), MeshTopology.Triangles,0);
-        tempMeshes.Add(tempMesh);
+        if(i == 0)
+        {
+          tempVertices = CreatePlaneVertices(spawnPoints[i], spawnNormals[i], planeSize, XYRatio);
+          tempNormals = CreatePlaneNormals(spawnNormals[i]);
+          tempUvs = CreatePlaneUVs();
+          tempIndices = CreatePlaneIndices(flipIndices, i);
+        }
+        else
+        {
+          tempVertices.AddRange(CreatePlaneVertices(spawnPoints[i], spawnNormals[i], planeSize, XYRatio));
+          tempNormals.AddRange(CreatePlaneNormals(spawnNormals[i]));
+          tempUvs.AddRange(CreatePlaneUVs());
+          tempIndices.AddRange(CreatePlaneIndices(flipIndices, i));
+        }
 
       }
-      return tempMeshes;
+
+      tempMesh.SetVertices(tempVertices);
+      tempMesh.SetNormals(tempNormals);
+      tempMesh.SetUVs(0, tempUvs);
+      tempMesh.SetIndices(tempIndices.ToArray(), MeshTopology.Triangles, 0);
+
+      return tempMesh;
     }
 
     protected void CombineMeshesCustom(Mesh overAllMesh, Matrix4x4 transforPosition, List<Mesh> meshes)

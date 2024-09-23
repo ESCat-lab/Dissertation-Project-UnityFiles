@@ -38,8 +38,7 @@ public class BrushRenderer : RenderFunctions
         MeshFilter filter = GetComponent<MeshFilter>();
 
         List<Vector3>[] spawnPos = CalculatePlaneSpawnPositions(vertices, referenceMesh.normals.ToList(), indices, brushDensity, distribution);
-        List<Mesh> meshes = CreatePlanes(spawnPos[0], spawnPos[1], planeSize, XYRatio, flipIndices);
-        CombineMeshesCustom(overAllMesh, Matrix4x4.identity, meshes);
+        overAllMesh = CreatePlanes(spawnPos[0], spawnPos[1], planeSize, XYRatio, flipIndices);
         filter.mesh = overAllMesh;
 	}
 
