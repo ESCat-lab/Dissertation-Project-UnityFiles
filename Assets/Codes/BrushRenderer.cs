@@ -32,41 +32,34 @@ public class BrushRenderer : RenderFunctions
 
     void OnEnable () 
     {
-        List<Vector3> vertices = referenceMesh.vertices.ToList();
-        List<Vector3> normals = referenceMesh.normals.ToList();
-        List<int> indices = referenceMesh.triangles.ToList();
-
-        //Debug.Log("vertices count: " + vertices.Count);
-        //Debug.Log("indices count: " + indices.Count);
-
 	    Mesh overAllMesh = new Mesh { name = "Combined Mesh" };
         overAllMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-
-        List<Vector3>[] spawnPos = CalculatePlaneSpawnPositions(vertices, normals, indices, brushDensity, seed);
+        List<Triangle> triangles = ExtrapolateRefPlanes(referenceMesh);
+        List<Vector3>[] spawnPos = CalculatePlaneSpawnPositions(triangles, brushDensity, seed);
         overAllMesh = CreatePlanes(spawnPos[0], spawnPos[1], planeSize, XYRatio, flipIndices);
 
-        if(materialList.Length != 0)
-        {
-            overAllMesh.subMeshCount = materialList.Length;
-        }else
-        {
-            overAllMesh.subMeshCount = 1;
-        }
+        //if(materialList.Length != 0)
+        //{
+            //overAllMesh.subMeshCount = materialList.Length;
+        //}else
+        //{
+            //overAllMesh.subMeshCount = 1;
+        //}
 
-        int section = overAllMesh.triangles.Count() / overAllMesh.subMeshCount;
+        //int section = overAllMesh.triangles.Count() / overAllMesh.subMeshCount;
 
-        for(int i = 0; i < overAllMesh.subMeshCount; i++)
+        //for(int i = 0; i < overAllMesh.subMeshCount; i++)
         {
-            int startPoint = Mathf.Clamp(i * section, 0, overAllMesh.triangles.Count() -1);
-            int endPoint = Mathf.Clamp(startPoint + section, 0 , overAllMesh.triangles.Count() -1);
-            overAllMesh.SetTriangles( overAllMesh.triangles[startPoint..], i);
+            //int startPoint = Mathf.Clamp(i * section, 0, overAllMesh.triangles.Count() -1);
+            //int endPoint = Mathf.Clamp(startPoint + section, 0 , overAllMesh.triangles.Count() -1);
+            //overAllMesh.SetTriangles( overAllMesh.triangles[startPoint..^endPoint], i);            
         }
 
         MeshFilter filter = GetComponent<MeshFilter>();
         filter.mesh = overAllMesh;
         
-        Renderer renderer = GetComponent<Renderer>();
-        renderer.SetSharedMaterials(materialList.ToList());
+        //Renderer renderer = GetComponent<Renderer>();
+        //renderer.SetSharedMaterials(materialList.ToList());
 	}
 
 }
