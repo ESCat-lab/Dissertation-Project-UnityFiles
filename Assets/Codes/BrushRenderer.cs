@@ -32,34 +32,20 @@ public class BrushRenderer : RenderFunctions
 
     void OnEnable () 
     {
-	    Mesh overAllMesh = new Mesh { name = "Combined Mesh" };
-        overAllMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+	    //Mesh overAllMesh = new Mesh { name = "Combined Mesh" };
+        //overAllMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         List<Triangle> triangles = ExtrapolateRefPlanes(referenceMesh);
-        List<Vector3>[] spawnPos = CalculatePlaneSpawnPositions(triangles, brushDensity, seed);
-        overAllMesh = CreatePlanes(spawnPos[0], spawnPos[1], planeSize, XYRatio, flipIndices);
+        List<Vertex> spawnPos = CalculatePlaneSpawnPositions(triangles, brushDensity, seed);
+        Mesh overAllMesh = CreatePlanes(spawnPos, planeSize, XYRatio, flipIndices);
 
-        //if(materialList.Length != 0)
-        //{
-            //overAllMesh.subMeshCount = materialList.Length;
-        //}else
-        //{
-            //overAllMesh.subMeshCount = 1;
-        //}
-
-        //int section = overAllMesh.triangles.Count() / overAllMesh.subMeshCount;
-
-        //for(int i = 0; i < overAllMesh.subMeshCount; i++)
-        {
-            //int startPoint = Mathf.Clamp(i * section, 0, overAllMesh.triangles.Count() -1);
-            //int endPoint = Mathf.Clamp(startPoint + section, 0 , overAllMesh.triangles.Count() -1);
-            //overAllMesh.SetTriangles( overAllMesh.triangles[startPoint..^endPoint], i);            
-        }
+        Debug.Log("overall submesh count: " + overAllMesh.subMeshCount);
+        Debug.Log("reference submesh count: " + referenceMesh.subMeshCount);
 
         MeshFilter filter = GetComponent<MeshFilter>();
         filter.mesh = overAllMesh;
         
-        //Renderer renderer = GetComponent<Renderer>();
-        //renderer.SetSharedMaterials(materialList.ToList());
+        Renderer renderer = GetComponent<Renderer>();
+        renderer.SetSharedMaterials(materialList.ToList());
 	}
 
 }

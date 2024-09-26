@@ -2,47 +2,95 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
 
 public class RenderFunctions : MonoBehaviour
 {
+  protected class Vertex
+  {
+    Vector3 position;
+    Vector3 normal;
+    int subMesh;
+    Vector2 uv;
+
+    public Vector3 Position;
+    public Vector3 Normal;
+    public int SubMesh;
+    public Vector2 Uv;
+
+    public Vertex(Vector3 position, Vector3 normal, int subMesh)
+    {
+      this.position = position;
+      this.normal = normal;
+      this.subMesh = subMesh;
+      //this.uv = uv;
+
+      Position = position;
+      Normal = normal;
+      SubMesh = subMesh;
+      //Uv = uv;
+    }
+    public Vertex(Vector3 position, Vector3 normal, Vector2 uv, int subMesh)
+    {
+      this.position = position;
+      this.normal = normal;
+      this.subMesh = subMesh;
+      this.uv = uv;
+
+      Position = position;
+      Normal = normal;
+      SubMesh = subMesh;
+      Uv = uv;
+    }
+    public Vertex(Vector3 position, Vector3 normal, Vector2 uv)
+    {
+      this.position = position;
+      this.normal = normal;
+      this.uv = uv;
+
+      Position = position;
+      Normal = normal;
+      Uv = uv;
+    }
+    public Vertex(Vector3 position, Vector3 normal)
+    {
+      this.position = position;
+      this.normal = normal;
+
+      Position = position;
+      Normal = normal;
+    }
+  }
   //------------------------------------Class to Contain Data of Each Triangle Corner--------------------------------------------
   protected class Triangle 
   {
-    Vector3[] corners = new Vector3[3];
-    Vector3[] normals = new Vector3[3];
+    Vertex[] corners = new Vertex[3];
 
     int subMesh;
-
-    public Vector3[] Corners;
-    public Vector3[] Normals;
+    public Vertex[] Corners;
 
     public int SubMesh;
 
-    public Triangle(Vector3[] corners, Vector3[] normals, int subMesh)
+    public Triangle(Vertex[] corners, int subMesh)
     {
-      this.corners = corners;
-      this.normals = normals;
       this.subMesh = subMesh;
-
+      this.corners = corners;
       Corners = corners;
-      Normals = normals;
       SubMesh = subMesh;
     }
-
   }
   //-----------------------------------------------------------------------------------------------------------------------------
   //--------------------------------------Get the Triangles of the Reference Mesh------------------------------------------------
   protected List<Triangle> ExtrapolateRefPlanes(Mesh referenceMesh)
   {   
+    List<Vertex> verticesList = new List<Vertex>();
     List<Vector3> vertices = referenceMesh.vertices.ToList();
     List<Vector3> normals = referenceMesh.normals.ToList();
     List<int> indices = referenceMesh.triangles.ToList();        
 
     List<Triangle> triangles = new List<Triangle>();
-    List<Vector3> pCorners = new List<Vector3>();
-    List<Vector3> pNormals = new List<Vector3>();
 
     for(int i = 0; i < referenceMesh.subMeshCount; i++)
     {
@@ -51,14 +99,12 @@ public class RenderFunctions : MonoBehaviour
           
       for(int t = 0; t < indiceCount; t++)
       {
-        pCorners.Add(vertices[indices[start + t]]);
-        pNormals.Add(normals[indices[start + t]]);   
+        verticesList.Add(new Vertex(vertices[indices[start + t]], normals[indices[start + t]], i));  
 
         if(t % 3 == 2 && t != 0)
         {
-          triangles.Add(new Triangle(pCorners.ToArray(), pNormals.ToArray(), i));
-          pCorners.Clear();
-          pNormals.Clear();
+          triangles.Add(new Triangle(verticesList.ToArray(), i));
+          verticesList.Clear();
         }       
       }
     }               
@@ -67,31 +113,21 @@ public class RenderFunctions : MonoBehaviour
 
   //-----------------------------------------------------------------------------------------------------------------------------
   //-------------------------------------Spawn a Few Planes on a Set of Triangles------------------------------------------------
-  protected List<Vector3>[] CalculatePlaneSpawnPositions(List<Triangle> triangles, int density, int seed)
+  protected List<Vertex> CalculatePlaneSpawnPositions(List<Triangle> triangles, int density, int seed)
   {
-    List<Vector3> spawnPoints = new List<Vector3>();
-    List<Vector3> spawnNormals = new List<Vector3>();
+    List<Vertex> spawnPoints = new List<Vertex>();
 
     density = Mathf.Clamp(density, 1, 100);
-    int tempSubMesh = triangles[0].SubMesh;
 
     foreach(Triangle triangle in triangles)
     {
-      Vector3 A = triangle.Corners[0];
-      Vector3 B = triangle.Corners[1];
-      Vector3 C = triangle.Corners[2];
-
-      Vector3 nA = triangle.Normals[0];
-      Vector3 nB = triangle.Normals[1];
-      Vector3 nC = triangle.Normals[2];
-
-      if(triangle.SubMesh != tempSubMesh)
-      {
-        tempSubMesh = triangle.SubMesh;
-      }
+      Vector3 A = triangle.Corners[0].Position;
+      Vector3 B = triangle.Corners[1].Position;
+      Vector3 C = triangle.Corners[2].Position;
 
       for (int t = 0; t < density; t++)
       {
+        //Debug.Log(triangle.SubMesh);
         // Generate two random values between 0 and 1
         Random.InitState(seed + t);            
         float pointDensityA = Random.Range(0f, 1f);
@@ -106,51 +142,43 @@ public class RenderFunctions : MonoBehaviour
 
         // Compute point on the plane by linear combination of triangle vertices
         Vector3 P = A + pointDensityA * (B - A) + pointDensityB * (C - A);
-        spawnPoints.Add(P);
 
         // Average the normals and add to the spawnNormals list
         //Vector3 N = (nA + nB + nC) / 3f; //Cross product
-        Vector3 N = Vector3.Cross(B - A, C - A);
-        spawnNormals.Add(N.normalized);
+        Vector3 N = Vector3.Cross(B - A, C - A).normalized;
+        spawnPoints.Add(new Vertex(P, N, Vector2.zero, triangle.SubMesh));
       }
     }
-    return new List<Vector3>[2] {spawnPoints, spawnNormals};
+    return spawnPoints;
   }
 
   //-----------------------------------------------------------------------------------------------------------------------------
   //-----------------------------Spawn the Vertex Positions of a Plane Centered on a Point--------------------------------------
-  protected List<Vector3> CreatePlaneVertices(Vector3 spawnPosition, Vector3 spawnNormal, float planeSize, Vector2Int XYRatio)
+  protected List<Vertex> CreatePlaneVertices(Vertex spawnPoint, float planeSize, Vector2Int XYRatio)
   { 
     XYRatio = new Vector2Int(Mathf.Clamp(XYRatio.x, 1, 10000), Mathf.Clamp(XYRatio.y, 1, 10000));
     float planeSizeX = planeSize * XYRatio.x / (XYRatio.x + XYRatio.y);
     float planeSizeY = planeSize * XYRatio.y / (XYRatio.x + XYRatio.y);
 
-    List<Vector3> tempVertices = new List<Vector3>{};
+    List<Vertex> tempVertices = new List<Vertex>{};
 
-    Vector3 a = Vector3.Cross(spawnNormal.normalized, Vector3.up).normalized;
-    Vector3 zOffset = spawnNormal.normalized * Random.Range(-0.01f,0.01f);
+    Vector3 a = Vector3.Cross(spawnPoint.Normal.normalized, Vector3.up).normalized;
+    Vector3 zOffset = spawnPoint.Normal.normalized * Random.Range(-0.01f,0.01f);
 
-    tempVertices.Add(spawnPosition - (a * planeSizeX + Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize + zOffset);
-    tempVertices.Add(spawnPosition - (a * planeSizeX - Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize + zOffset);
-    tempVertices.Add(spawnPosition + (a * planeSizeX + Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize + zOffset);
-    tempVertices.Add(spawnPosition + (a * planeSizeX - Vector3.Cross(spawnNormal.normalized, a).normalized * planeSizeY)* planeSize + zOffset);
+    Vector3 pos = spawnPoint.Position - (a * planeSizeX + Vector3.Cross(spawnPoint.Normal.normalized, a).normalized * planeSizeY)* planeSize + zOffset;
+    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(0,1), spawnPoint.SubMesh));
+
+    pos = spawnPoint.Position - (a * planeSizeX - Vector3.Cross(spawnPoint.Normal.normalized, a).normalized * planeSizeY)* planeSize + zOffset;
+    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(0,0), spawnPoint.SubMesh));
+
+    pos = spawnPoint.Position + (a * planeSizeX + Vector3.Cross(spawnPoint.Normal.normalized, a).normalized * planeSizeY)* planeSize + zOffset;
+    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(1,0), spawnPoint.SubMesh));
+
+    pos = spawnPoint.Position + (a * planeSizeX - Vector3.Cross(spawnPoint.Normal.normalized, a).normalized * planeSizeY)* planeSize + zOffset;
+    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(1,1), spawnPoint.SubMesh));
 
     return tempVertices;
   }   
-  //-----------------------------------------------------------------------------------------------------------------------------
-  //-------------Return 4 Normal Vectors for Each Corners of the Plane Based on the Original Referenced Mesh Normal--------------
-  protected List<Vector3> CreatePlaneNormals(Vector3 spawnNormal)
-  {
-    List<Vector3> tempNormals = new List<Vector3>()
-    {
-      spawnNormal,
-      spawnNormal,
-      spawnNormal,
-      spawnNormal
-    };
-
-    return tempNormals;
-  }
   //-----------------------------------------------------------------------------------------------------------------------------
   //---------------------------------------Return 6 Indices for Each Plane's Two Triangles---------------------------------------
   protected List<int> CreatePlaneIndices(bool flipIndices, int i)
@@ -173,53 +201,68 @@ public class RenderFunctions : MonoBehaviour
     return tempIndices;
   }
   //-----------------------------------------------------------------------------------------------------------------------------
-  //------Return 4 Vectors for Each Corners of the Plane's UV Coordinates. It maps to each corner corresponding to a square------
-  protected List<Vector2> CreatePlaneUVs()
-  {
-    List<Vector2> tempUVs = new List<Vector2>()
-    {
-      new Vector2(0,1),
-      new Vector2(0,0),
-      new Vector2(1,0),
-      new Vector2(1,1)
-    };
-    return tempUVs;
-  }
-  //-----------------------------------------------------------------------------------------------------------------------------
   //------------------------Combines the Previous Methods to Create a Mesh Made out of a Bunch of Planes-------------------------
-  protected Mesh CreatePlanes(List<Vector3> spawnPoints, List<Vector3> spawnNormals, float planeSize, Vector2Int XYRatio, bool flipIndices)
+  protected Mesh CreatePlanes(List<Vertex> spawnPoints, float planeSize, Vector2Int XYRatio, bool flipIndices)
   {
     Mesh tempMesh = new Mesh();
     tempMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-    
-    List<Vector3> tempVertices = new List<Vector3>();
-    List<Vector3> tempNormals = new List<Vector3>();
-    List<Vector2> tempUvs = new List<Vector2>();
+
+    List<Vertex> tempVertices = new List<Vertex>();
     List<int> tempIndices = new List<int>();
-    //Debug.Log(spawnPoints.Count);
+    int submeshCount = 0;
 
     for(int i = 0; i < spawnPoints.Count; i++)
     {
       if(i == 0)
-      {
-        tempVertices = CreatePlaneVertices(spawnPoints[i], spawnNormals[i], planeSize, XYRatio);
-        tempNormals = CreatePlaneNormals(spawnNormals[i]);
-        tempUvs = CreatePlaneUVs();
+      {        
+        tempVertices = CreatePlaneVertices(spawnPoints[i], planeSize, XYRatio);
         tempIndices = CreatePlaneIndices(flipIndices, i);
+        submeshCount = spawnPoints[i].SubMesh;
       }
       else
       {
-        tempVertices.AddRange(CreatePlaneVertices(spawnPoints[i], spawnNormals[i], planeSize, XYRatio));
-        tempNormals.AddRange(CreatePlaneNormals(spawnNormals[i]));
-        tempUvs.AddRange(CreatePlaneUVs());
+        tempVertices.AddRange(CreatePlaneVertices(spawnPoints[i], planeSize, XYRatio));
         tempIndices.AddRange(CreatePlaneIndices(flipIndices, i));
+        if(submeshCount < spawnPoints[i].SubMesh)
+        {
+          submeshCount = spawnPoints[i].SubMesh;
+        }
       }
     }
 
-    tempMesh.SetVertices(tempVertices);
-    tempMesh.SetNormals(tempNormals);
-    tempMesh.SetUVs(0, tempUvs);
-    tempMesh.SetIndices(tempIndices.ToArray(), MeshTopology.Triangles, 0);
+    List<Vector3> pos = new List<Vector3>();
+    List<Vector3> normals = new List<Vector3>();
+    List<Vector2> uvs = new List<Vector2>();
+    foreach(Vertex vert in tempVertices)
+    {
+      pos.Add(vert.Position);
+      normals.Add(vert.Normal);
+      uvs.Add(vert.Uv);
+
+    }
+    tempMesh.SetVertices(pos);
+    tempMesh.SetNormals(normals);
+    tempMesh.SetUVs(0, uvs);
+    tempMesh.subMeshCount = submeshCount + 1;
+
+    List<int> subMeshIndices = new List<int>();
+    int counter = 0;
+    for(int i = 0; i < tempIndices.Count; i++)
+    {
+      //Debug.Log("Vertice submesh: " + tempVertices[tempIndices[i]].SubMesh);
+      if(i > 0 && tempVertices[tempIndices[i - 1]].SubMesh != tempVertices[tempIndices[i]].SubMesh)
+      {        
+        tempMesh.SetIndices(subMeshIndices.ToArray(), MeshTopology.Triangles, counter);        
+        subMeshIndices.Clear();
+        counter++;
+      }else if(i == tempIndices.Count - 1)
+      {
+        subMeshIndices.Add(tempIndices[i]);  
+        tempMesh.SetIndices(subMeshIndices.ToArray(), MeshTopology.Triangles, counter);
+      }
+
+      subMeshIndices.Add(tempIndices[i]);      
+    }
 
     return tempMesh;
   }
