@@ -8,6 +8,7 @@ using UnityEngine;
 
 public class RenderFunctions : MonoBehaviour
 {
+  //--------------------------------------------Class to Contain Vertex Data-----------------------------------------------------
   protected class Vertex
   {
     Vector3 position;
@@ -63,6 +64,7 @@ public class RenderFunctions : MonoBehaviour
       Normal = normal;
     }
   }
+  //-----------------------------------------------------------------------------------------------------------------------------
   //------------------------------------Class to Contain Data of Each Triangle Corner--------------------------------------------
   protected class Triangle 
   {

@@ -32,14 +32,10 @@ public class BrushRenderer : RenderFunctions
 
     void OnEnable () 
     {
-	    //Mesh overAllMesh = new Mesh { name = "Combined Mesh" };
-        //overAllMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         List<Triangle> triangles = ExtrapolateRefPlanes(referenceMesh);
         List<Vertex> spawnPos = CalculatePlaneSpawnPositions(triangles, brushDensity, seed);
         Mesh overAllMesh = CreatePlanes(spawnPos, planeSize, XYRatio, flipIndices);
-
-        Debug.Log("overall submesh count: " + overAllMesh.subMeshCount);
-        Debug.Log("reference submesh count: " + referenceMesh.subMeshCount);
+        overAllMesh.name = "Combined Brush Strokes";
 
         MeshFilter filter = GetComponent<MeshFilter>();
         filter.mesh = overAllMesh;

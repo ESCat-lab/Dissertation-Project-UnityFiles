@@ -1,13 +1,15 @@
 // This shader fills the mesh shape with a color predefined in the code.
-Shader "ESC_Shaders/TestShader"
+Shader "Custom/BrushShader"
 {
     // The properties block of the Unity shader. In this example this block is empty
     // because the output color is predefined in the fragment shader code.
     Properties
-    { }
+    { 
 
-        // The SubShader block containing the Shader code. 
-        SubShader
+    }
+
+    // The SubShader block containing the Shader code. 
+    SubShader
     {
         // SubShader Tags define when and under which conditions a SubShader block or
         // a pass is executed.
@@ -34,38 +36,38 @@ Shader "ESC_Shaders/TestShader"
             // the vertex shader.
             struct Attributes
             {
-        // The positionOS variable contains the vertex positions in object
-        // space.
-        float4 positionOS   : POSITION;
-    };
+                // The positionOS variable contains the vertex positions in object
+                // space.
+                 float4 positionOS   : POSITION;
+            };
 
-    struct Varyings
-    {
-        // The positions in this struct must have the SV_POSITION semantic.
-        float4 positionHCS  : SV_POSITION;
-    };
+            struct Varyings
+            {
+                // The positions in this struct must have the SV_POSITION semantic.
+                float4 positionHCS  : SV_POSITION;
+            };
 
-    // The vertex shader definition with properties defined in the Varyings 
-    // structure. The type of the vert function must match the type (struct)
-    // that it returns.
-    Varyings vert(Attributes IN)
-    {
-        // Declaring the output object (OUT) with the Varyings struct.
-        Varyings OUT;
-        // The TransformObjectToHClip function transforms vertex positions
-        // from object space to homogenous space
-        OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-        // Returning the output.
-        return OUT;
-    }
+            // The vertex shader definition with properties defined in the Varyings 
+            // structure. The type of the vert function must match the type (struct)
+            // that it returns.
+            Varyings vert(Attributes IN)
+            {
+                // Declaring the output object (OUT) with the Varyings struct.
+                Varyings OUT;
+                // The TransformObjectToHClip function transforms vertex positions
+                // from object space to homogenous space
+                OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
+                // Returning the output.
+                return OUT;
+            }
 
-    // The fragment shader definition.            
-    half4 frag() : SV_Target
-    {
-        // Defining the color variable and returning it.
-        return MyColor;
-    }
-    ENDHLSL
-}
+            // The fragment shader definition.            
+            half4 frag() : SV_Target
+            {
+                // Defining the color variable and returning it.
+                return MyColor;
+            }
+            ENDHLSL
+        }
     }
 }
