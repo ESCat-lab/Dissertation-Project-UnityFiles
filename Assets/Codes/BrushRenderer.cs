@@ -27,6 +27,9 @@ public class BrushRenderer : RenderFunctions
     [SerializeField] [Range(0.1f, 1f)]
     float planeSize = 0.5f;
 
+    [SerializeField] [Range(0.001f, 1f)]
+    float rotation = 0.1f;
+
     [SerializeField]
     bool flipIndices = false;
 
@@ -34,7 +37,7 @@ public class BrushRenderer : RenderFunctions
     {
         List<Triangle> triangles = ExtrapolateRefPlanes(referenceMesh);
         List<Vertex> spawnPos = CalculatePlaneSpawnPositions(triangles, brushDensity, seed);
-        Mesh overAllMesh = CreatePlanes(spawnPos, planeSize, XYRatio, flipIndices);
+        Mesh overAllMesh = CreatePlanes(spawnPos, planeSize, XYRatio, flipIndices, rotation);
         overAllMesh.name = "Combined Brush Strokes";
 
         MeshFilter filter = GetComponent<MeshFilter>();

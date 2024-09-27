@@ -19,9 +19,8 @@ Shader "Custom/BrushShader"
         {
             // The HLSL code block. Unity SRP uses the HLSL language.
             HLSLPROGRAM
-            // This line defines the name of the vertex shader. 
             #pragma vertex vert
-            // This line defines the name of the fragment shader. 
+            #pragma geometry geo
             #pragma fragment frag
             
             // The Core.hlsl file contains definitions of frequently used HLSL
@@ -47,6 +46,22 @@ Shader "Custom/BrushShader"
                 float4 positionHCS  : SV_POSITION;
             };
 
+            struct v2g
+            {
+            float4 pos : SV_POSITION;
+            float3 norm : NORMAL;
+            float2 uv : TEXCOORD0;
+            };
+    
+            struct g2f
+            {
+            float4 pos : SV_POSITION;
+            float3 norm : NORMAL;
+            //float2 uv : TEXCOORD0;
+            //float3 diffuseColor : TEXCOORD1;
+            //float3 specularColor : TEXCOORD2;
+            };
+
             // The vertex shader definition with properties defined in the Varyings 
             // structure. The type of the vert function must match the type (struct)
             // that it returns.
@@ -59,6 +74,12 @@ Shader "Custom/BrushShader"
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
                 // Returning the output.
                 return OUT;
+            }
+
+            [maxvertexcount(48)]
+            void geo(triangle v2g IN[3], inout TriangleStream<g2f> triStream)
+            {
+                
             }
 
             // The fragment shader definition.            

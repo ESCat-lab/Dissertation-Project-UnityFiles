@@ -156,27 +156,31 @@ public class RenderFunctions : MonoBehaviour
 
   //-----------------------------------------------------------------------------------------------------------------------------
   //-----------------------------Spawn the Vertex Positions of a Plane Centered on a Point--------------------------------------
-  protected List<Vertex> CreatePlaneVertices(Vertex spawnPoint, float planeSize, Vector2Int XYRatio)
+  protected List<Vertex> CreatePlaneVertices(Vertex spawnPoint, float planeSize, Vector2Int XYRatio, float rotation = 0.1f)
   { 
     XYRatio = new Vector2Int(Mathf.Clamp(XYRatio.x, 1, 10000), Mathf.Clamp(XYRatio.y, 1, 10000));
+    planeSize = planeSize * Random.Range(0.5f, 1f);
     float planeSizeX = planeSize * XYRatio.x / (XYRatio.x + XYRatio.y);
     float planeSizeY = planeSize * XYRatio.y / (XYRatio.x + XYRatio.y);
 
     List<Vertex> tempVertices = new List<Vertex>{};
 
+    Vector3 rotationOffset = Random.insideUnitSphere.normalized * rotation;
     Vector3 a = Vector3.Cross(spawnPoint.Normal.normalized, Vector3.up).normalized;
+    a += rotationOffset;
+    Vector3 b = Vector3.Cross(spawnPoint.Normal.normalized, a).normalized;
     Vector3 zOffset = spawnPoint.Normal.normalized * Random.Range(-0.01f,0.01f);
 
-    Vector3 pos = spawnPoint.Position - (a * planeSizeX + Vector3.Cross(spawnPoint.Normal.normalized, a).normalized * planeSizeY)* planeSize + zOffset;
+    Vector3 pos = spawnPoint.Position - (a * planeSizeX + b * planeSizeY)* planeSize + zOffset;
     tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(0,1), spawnPoint.SubMesh));
 
-    pos = spawnPoint.Position - (a * planeSizeX - Vector3.Cross(spawnPoint.Normal.normalized, a).normalized * planeSizeY)* planeSize + zOffset;
+    pos = spawnPoint.Position - (a * planeSizeX - b * planeSizeY)* planeSize + zOffset;
     tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(0,0), spawnPoint.SubMesh));
 
-    pos = spawnPoint.Position + (a * planeSizeX + Vector3.Cross(spawnPoint.Normal.normalized, a).normalized * planeSizeY)* planeSize + zOffset;
+    pos = spawnPoint.Position + (a * planeSizeX + b * planeSizeY)* planeSize + zOffset;
     tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(1,0), spawnPoint.SubMesh));
 
-    pos = spawnPoint.Position + (a * planeSizeX - Vector3.Cross(spawnPoint.Normal.normalized, a).normalized * planeSizeY)* planeSize + zOffset;
+    pos = spawnPoint.Position + (a * planeSizeX - b * planeSizeY)* planeSize + zOffset;
     tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(1,1), spawnPoint.SubMesh));
 
     return tempVertices;
@@ -204,7 +208,7 @@ public class RenderFunctions : MonoBehaviour
   }
   //-----------------------------------------------------------------------------------------------------------------------------
   //------------------------Combines the Previous Methods to Create a Mesh Made out of a Bunch of Planes-------------------------
-  protected Mesh CreatePlanes(List<Vertex> spawnPoints, float planeSize, Vector2Int XYRatio, bool flipIndices)
+  protected Mesh CreatePlanes(List<Vertex> spawnPoints, float planeSize, Vector2Int XYRatio, bool flipIndices, float rotation = 0.1f)
   {
     Mesh tempMesh = new Mesh();
     tempMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
@@ -217,13 +221,13 @@ public class RenderFunctions : MonoBehaviour
     {
       if(i == 0)
       {        
-        tempVertices = CreatePlaneVertices(spawnPoints[i], planeSize, XYRatio);
+        tempVertices = CreatePlaneVertices(spawnPoints[i], planeSize, XYRatio, rotation);
         tempIndices = CreatePlaneIndices(flipIndices, i);
         submeshCount = spawnPoints[i].SubMesh;
       }
       else
       {
-        tempVertices.AddRange(CreatePlaneVertices(spawnPoints[i], planeSize, XYRatio));
+        tempVertices.AddRange(CreatePlaneVertices(spawnPoints[i], planeSize, XYRatio, rotation));
         tempIndices.AddRange(CreatePlaneIndices(flipIndices, i));
         if(submeshCount < spawnPoints[i].SubMesh)
         {
