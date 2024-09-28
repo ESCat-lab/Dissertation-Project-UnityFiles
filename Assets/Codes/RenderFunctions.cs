@@ -4,10 +4,13 @@ using System.ComponentModel;
 using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShortcutManagement;
+using UnityEditor.UI;
 using UnityEngine;
 
 public class RenderFunctions : MonoBehaviour
 {
+  int sensitivity = 1000;
+  int scalingSensitivity = 10;
   //--------------------------------------------Class to Contain Vertex Data-----------------------------------------------------
   protected class Vertex
   {
@@ -16,52 +19,37 @@ public class RenderFunctions : MonoBehaviour
     int subMesh;
     Vector2 uv;
 
+    float size;
+
     public Vector3 Position;
     public Vector3 Normal;
     public int SubMesh;
     public Vector2 Uv;
+    public float Size;
 
-    public Vertex(Vector3 position, Vector3 normal, int subMesh)
+    public Vertex(Vector3 position, Vector3 normal, int subMesh = 0, float size = 0)
     {
       this.position = position;
       this.normal = normal;
       this.subMesh = subMesh;
-      //this.uv = uv;
 
       Position = position;
       Normal = normal;
       SubMesh = subMesh;
-      //Uv = uv;
     }
-    public Vertex(Vector3 position, Vector3 normal, Vector2 uv, int subMesh)
+    public Vertex(Vector3 position, Vector3 normal, Vector2 uv, int subMesh = 0, float size = 0)
     {
       this.position = position;
       this.normal = normal;
       this.subMesh = subMesh;
       this.uv = uv;
+      this.size = size;
 
       Position = position;
       Normal = normal;
       SubMesh = subMesh;
       Uv = uv;
-    }
-    public Vertex(Vector3 position, Vector3 normal, Vector2 uv)
-    {
-      this.position = position;
-      this.normal = normal;
-      this.uv = uv;
-
-      Position = position;
-      Normal = normal;
-      Uv = uv;
-    }
-    public Vertex(Vector3 position, Vector3 normal)
-    {
-      this.position = position;
-      this.normal = normal;
-
-      Position = position;
-      Normal = normal;
+      Size = size;
     }
   }
   //-----------------------------------------------------------------------------------------------------------------------------
@@ -71,16 +59,27 @@ public class RenderFunctions : MonoBehaviour
     Vertex[] corners = new Vertex[3];
 
     int subMesh;
+
+    float area;
     public Vertex[] Corners;
 
     public int SubMesh;
+    public float Area;
 
     public Triangle(Vertex[] corners, int subMesh)
     {
       this.subMesh = subMesh;
       this.corners = corners;
+      //Area = Square root of√s(s - a)(s - b)(s - c) where s is half the perimeter, or (a + b + c)/2.
+      float a = (corners[0].Position - corners[1].Position).magnitude;
+      float b = (corners[1].Position - corners[2].Position).magnitude;
+      float c = (corners[2].Position - corners[0].Position).magnitude;
+      float s = (a + b + c)/2;
+      area = Mathf.Sqrt(s * (s - a) * (s - b) * (s - c));
+
       Corners = corners;
       SubMesh = subMesh;
+      Area = area;
     }
   }
   //-----------------------------------------------------------------------------------------------------------------------------
@@ -127,7 +126,11 @@ public class RenderFunctions : MonoBehaviour
       Vector3 B = triangle.Corners[1].Position;
       Vector3 C = triangle.Corners[2].Position;
 
-      for (int t = 0; t < density; t++)
+      int tempDensity = (density * (Mathf.FloorToInt(triangle.Area * sensitivity) + 1))/10;
+
+      //Debug.Log(Mathf.FloorToInt(triangle.Area * sensitivity));
+
+      for (int t = 0; t < tempDensity; t++)
       {
         //Debug.Log(triangle.SubMesh);
         // Generate two random values between 0 and 1
@@ -148,7 +151,7 @@ public class RenderFunctions : MonoBehaviour
         // Average the normals and add to the spawnNormals list
         //Vector3 N = (nA + nB + nC) / 3f; //Cross product
         Vector3 N = Vector3.Cross(B - A, C - A).normalized;
-        spawnPoints.Add(new Vertex(P, N, Vector2.zero, triangle.SubMesh));
+        spawnPoints.Add(new Vertex(P, N, Vector2.zero, triangle.SubMesh, triangle.Area));
       }
     }
     return spawnPoints;
@@ -156,32 +159,41 @@ public class RenderFunctions : MonoBehaviour
 
   //-----------------------------------------------------------------------------------------------------------------------------
   //-----------------------------Spawn the Vertex Positions of a Plane Centered on a Point--------------------------------------
-  protected List<Vertex> CreatePlaneVertices(Vertex spawnPoint, float planeSize, Vector2Int XYRatio, float rotation = 0.1f)
+  protected List<Vertex> CreatePlaneVertices(Vertex spawnPoint, float size, Vector2Int XYRatio, float rotation = 0.1f)
   { 
     XYRatio = new Vector2Int(Mathf.Clamp(XYRatio.x, 1, 10000), Mathf.Clamp(XYRatio.y, 1, 10000));
+    float planeSize = size + (spawnPoint.Size / scalingSensitivity);
+    //float planeSize = (size * (spawnPoint.Size / sensitivity + 1));
+    //Debug.Log(planeSize);
     planeSize = planeSize * Random.Range(0.5f, 1f);
     float planeSizeX = planeSize * XYRatio.x / (XYRatio.x + XYRatio.y);
     float planeSizeY = planeSize * XYRatio.y / (XYRatio.x + XYRatio.y);
 
     List<Vertex> tempVertices = new List<Vertex>{};
 
+    Vector3 up = Vector3.up;
+    if(Mathf.Abs(Vector3.Dot(up, spawnPoint.Normal)) > 0.95f)
+    {
+      up = Vector3.right;
+    }
+
     Vector3 rotationOffset = Random.insideUnitSphere.normalized * rotation;
-    Vector3 a = Vector3.Cross(spawnPoint.Normal.normalized, Vector3.up).normalized;
+    Vector3 a = Vector3.Cross(spawnPoint.Normal.normalized, up).normalized;
     a += rotationOffset;
     Vector3 b = Vector3.Cross(spawnPoint.Normal.normalized, a).normalized;
     Vector3 zOffset = spawnPoint.Normal.normalized * Random.Range(-0.01f,0.01f);
 
     Vector3 pos = spawnPoint.Position - (a * planeSizeX + b * planeSizeY)* planeSize + zOffset;
-    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(0,1), spawnPoint.SubMesh));
+    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(0,1), spawnPoint.SubMesh, spawnPoint.Size));
 
     pos = spawnPoint.Position - (a * planeSizeX - b * planeSizeY)* planeSize + zOffset;
-    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(0,0), spawnPoint.SubMesh));
+    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(0,0), spawnPoint.SubMesh, spawnPoint.Size));
 
     pos = spawnPoint.Position + (a * planeSizeX + b * planeSizeY)* planeSize + zOffset;
-    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(1,0), spawnPoint.SubMesh));
+    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(1,0), spawnPoint.SubMesh, spawnPoint.Size));
 
     pos = spawnPoint.Position + (a * planeSizeX - b * planeSizeY)* planeSize + zOffset;
-    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(1,1), spawnPoint.SubMesh));
+    tempVertices.Add(new Vertex(pos, spawnPoint.Normal.normalized, new Vector2(1,1), spawnPoint.SubMesh, spawnPoint.Size));
 
     return tempVertices;
   }   
