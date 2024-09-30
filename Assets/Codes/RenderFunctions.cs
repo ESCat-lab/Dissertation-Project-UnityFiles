@@ -12,7 +12,7 @@ public class RenderFunctions : MonoBehaviour
   int sensitivity = 1000;
   int scalingSensitivity = 10;
   //--------------------------------------------Class to Contain Vertex Data-----------------------------------------------------
-  protected class Vertex
+  protected struct Vertex
   {
     Vector3 position;
     Vector3 normal;
@@ -32,10 +32,14 @@ public class RenderFunctions : MonoBehaviour
       this.position = position;
       this.normal = normal;
       this.subMesh = subMesh;
+      this.uv = new Vector2(0,0);
+      this.size = size;
 
       Position = position;
       Normal = normal;
       SubMesh = subMesh;
+      Uv = uv;
+      Size = size;
     }
     public Vertex(Vector3 position, Vector3 normal, Vector2 uv, int subMesh = 0, float size = 0)
     {
@@ -54,9 +58,9 @@ public class RenderFunctions : MonoBehaviour
   }
   //-----------------------------------------------------------------------------------------------------------------------------
   //------------------------------------Class to Contain Data of Each Triangle Corner--------------------------------------------
-  protected class Triangle 
+  protected struct Triangle 
   {
-    Vertex[] corners = new Vertex[3];
+    Vertex[] corners;
 
     int subMesh;
 
@@ -297,4 +301,20 @@ public class RenderFunctions : MonoBehaviour
     }
     overAllMesh.CombineMeshes(combineInstance, true, true);
   }
+  //-----------------------------------Helper Function for Finding Smallest Divisible of a Number--------------------------------
+  protected int GetSmallestDivisibleFactor(int number)
+  {
+    if (number <= 1) return number; // Return the number itself if <= 1
+    
+    for (int i = 2; i <= Mathf.Sqrt(number); i++)
+    {
+      if (number % i == 0)
+      {
+          return i; // Return the first factor found
+      }
+    }
+    
+    return number; // If no factors are found, return the number itself (it's prime)
+  }
+
 }

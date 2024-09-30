@@ -1,0 +1,81 @@
+// Filename: PreProcessBrush.compute
+
+#pragma kernel GenerateVertices
+
+// Constants
+struct Constants
+{
+    float sensitivity;
+    float rotation; // Could be a randomization factor if needed  
+    float2 XYRatio;
+    uint brushDensity;
+    uint seed;
+    float planeSize;
+    bool flipIndices;
+    uint triangleCount; // Number of triangles in the reference mesh
+};
+
+struct vertex
+{
+    float3 position;
+    float3 normal;
+    int subMesh;
+    float2 uv;
+    float size;
+};
+
+struct Triangle
+{
+    vertex vertexA;
+    vertex vertexB;
+    vertex vertexC;
+};
+
+// Data buffer to store spawn points or triangle data
+StructuredBuffer<float3> refVertices;
+StructuredBuffer<float3> refNormals;
+StructuredBuffer<int> refIndices;
+StructuredBuffer<Constants> constants;
+
+// RWStructuredBuffer to hold generated vertex positions and normals
+AppendStructuredBuffer<vertex> newVertices;
+
+// Generate vertices based on triangle data
+[numthreads(256, 1, 1)]
+void GenerateVertices(uint3 id : SV_DispatchThreadID)
+{
+    // Early out if we're outside the range
+    if (id.x >= constants[0].triangleCount)
+        return;
+
+    // Load triangle data from the buffer
+    float3 A = refVertices[refIndices[id.x * 3]];
+    float3 B = refVertices[refIndices[id.x * 3 + 1]];
+    float3 C = refVertices[refIndices[id.x * 3 + 2]];
+
+    // Compute normal
+    float3 N = normalize(cross(B - A, C - A));
+
+    // Calculate barycentric coordinates for random point generation
+    float pointDensityA = frac(sin(dot(A, float3(12.9898, 78.233, 0.0))) * 43758.5453); // Random float between 0-1
+    float pointDensityB = frac(sin(dot(B, float3(93.9898, 63.233, 0.0))) * 22345.5433);
+
+    if (pointDensityA + pointDensityB > 1.0f)
+    {
+        pointDensityA = 1.0f - pointDensityA;
+        pointDensityB = 1.0f - pointDensityB;
+    }
+
+    // Compute new vertex position within the triangle
+    float3 P = A + pointDensityA * (B - A) + pointDensityB * (C - A);
+
+    vertex v;
+    // Store the vertex position and its normal
+    v.position = P;
+    v.normal = N;
+    v.subMesh = 0;
+    v.uv = float2(0,0);
+    v.size = 0;
+
+    newVertices.Append(v);
+}
