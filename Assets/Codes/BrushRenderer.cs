@@ -8,7 +8,7 @@ using UnityEngine.Assertions.Comparers;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))] [ExecuteInEditMode]
 public class BrushRenderer : RenderFunctions
-{
+{ 
     [SerializeField]
     Mesh referenceMesh;
 

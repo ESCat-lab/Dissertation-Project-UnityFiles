@@ -1,0 +1,109 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+
+struct custom_Vertex
+{
+    float3 position;
+    float3 normal;
+    int subMesh;
+    float2 uv;
+    float size;
+};
+
+struct custom_Triangle
+{
+    custom_Vertex corners[3];
+    int subMesh;
+    float area;
+};
+
+int triangleCount;
+int density;
+int sensitivity;
+int seed;
+
+RWStructuredBuffer<custom_Triangle> refTriangles;
+
+AppendStructuredBuffer<custom_Vertex> newVertices;
+
+//Wikipedia contributors (2021). Linear Congruential Generator. [online] Wikipedia. 
+//Available at: https://en.wikipedia.org/wiki/Linear_congruential_generator.
+int m = 0x100000000u;
+int a = 1664525;
+int c = 1013904223;
+//----------------------------------------------------------------------------------
+
+//goodday451999 (2020). Linear Congruence Method for Generating Pseudo Random Numbers. [online] GeeksforGeeks. 
+//Available at: https://www.geeksforgeeks.org/linear-congruence-method-for-generating-pseudo-random-numbers/.
+uint LinearCongruentialMethod(uint seed)
+{
+    return ((seed * a) + c) % m; 
+}
+//-----------------------------------------------------------------------------------------------------------
+
+float RandomFloatRange(float2 seed, float min, float max)
+{
+    // Use a more robust hashing function for the seed
+    float hashedValue = frac(sin(dot(seed, float2(12.9898, 78.233)) + 4.1414) * 43758.5453);
+    
+    // Map the 0-1 random value to the desired range using min and max
+    return min + hashedValue * (max - min);
+}
+
+//--------------------------------------------------------------------------------------------------------------------
+
+[numthreads(8,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x > triangleCount)
+    {
+        return;
+    }
+
+    custom_Triangle current_triangle;
+    current_triangle = refTriangles[id.x];
+    
+    float3 A = current_triangle.corners[0].position;
+    float3 B = current_triangle.corners[1].position;
+    float3 C = current_triangle.corners[2].position;
+
+    //int tempDensity = (density * (floor(current_triangle.area * sensitivity) + 1))/10;
+    int tempDensity = density;
+    int tempSeed = seed;
+    
+    for (int t = 0; t < tempDensity; t++)
+    {
+      float pointDensityA = RandomFloatRange(tempSeed, 0.0, 1.0);
+      tempSeed = LinearCongruentialMethod(tempSeed);
+
+      float pointDensityB = RandomFloatRange(tempSeed, 0.0, 1.0);
+      tempSeed = LinearCongruentialMethod(tempSeed);
+
+      // Ensure the points are inside the triangle (barycentric coordinate system)
+      if (pointDensityA + pointDensityB > 1)
+      {
+        pointDensityA = 1 - pointDensityA;
+        pointDensityB = 1 - pointDensityB;
+      }
+
+      // Compute point on the plane by linear combination of triangle vertices
+      float3 P = A + pointDensityA * (B - A) + pointDensityB * (C - A);
+
+      // Average the normals and add to the spawnNormals list
+      //Vector3 N = (nA + nB + nC) / 3f; //Cross product
+      float3 N = normalize(cross(B - A, C - A));
+
+      custom_Vertex v;
+      v.position = P;
+      v.normal = N;
+      v.uv = float2(0,0);
+      v.subMesh = current_triangle.subMesh;
+      v.size = current_triangle.area;
+
+      newVertices.Append(v);
+    }
+}

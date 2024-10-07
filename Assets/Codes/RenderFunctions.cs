@@ -9,18 +9,11 @@ using UnityEngine;
 
 public class RenderFunctions : MonoBehaviour
 {
-  int sensitivity = 1000;
-  int scalingSensitivity = 10;
+  public int sensitivity = 1000;
+  protected int scalingSensitivity = 10;
   //--------------------------------------------Class to Contain Vertex Data-----------------------------------------------------
   protected struct Vertex
   {
-    Vector3 position;
-    Vector3 normal;
-    int subMesh;
-    Vector2 uv;
-
-    float size;
-
     public Vector3 Position;
     public Vector3 Normal;
     public int SubMesh;
@@ -29,26 +22,14 @@ public class RenderFunctions : MonoBehaviour
 
     public Vertex(Vector3 position, Vector3 normal, int subMesh = 0, float size = 0)
     {
-      this.position = position;
-      this.normal = normal;
-      this.subMesh = subMesh;
-      this.uv = new Vector2(0,0);
-      this.size = size;
-
       Position = position;
       Normal = normal;
       SubMesh = subMesh;
-      Uv = uv;
+      Uv = new Vector2(0,0);
       Size = size;
     }
     public Vertex(Vector3 position, Vector3 normal, Vector2 uv, int subMesh = 0, float size = 0)
     {
-      this.position = position;
-      this.normal = normal;
-      this.subMesh = subMesh;
-      this.uv = uv;
-      this.size = size;
-
       Position = position;
       Normal = normal;
       SubMesh = subMesh;
@@ -60,30 +41,26 @@ public class RenderFunctions : MonoBehaviour
   //------------------------------------Class to Contain Data of Each Triangle Corner--------------------------------------------
   protected struct Triangle 
   {
-    Vertex[] corners;
-
-    int subMesh;
-
-    float area;
-    public Vertex[] Corners;
+    public Vertex cornerA;
+    public Vertex cornerB;
+    public Vertex cornerC;
 
     public int SubMesh;
     public float Area;
 
     public Triangle(Vertex[] corners, int subMesh)
     {
-      this.subMesh = subMesh;
-      this.corners = corners;
       //Area = Square root of√s(s - a)(s - b)(s - c) where s is half the perimeter, or (a + b + c)/2.
       float a = (corners[0].Position - corners[1].Position).magnitude;
       float b = (corners[1].Position - corners[2].Position).magnitude;
       float c = (corners[2].Position - corners[0].Position).magnitude;
       float s = (a + b + c)/2;
-      area = Mathf.Sqrt(s * (s - a) * (s - b) * (s - c));
 
-      Corners = corners;
+      Area = Mathf.Sqrt(s * (s - a) * (s - b) * (s - c));
+      cornerA = corners[0];
+      cornerB = corners[1];
+      cornerC = corners[2];
       SubMesh = subMesh;
-      Area = area;
     }
   }
   //-----------------------------------------------------------------------------------------------------------------------------
@@ -126,9 +103,9 @@ public class RenderFunctions : MonoBehaviour
 
     foreach(Triangle triangle in triangles)
     {
-      Vector3 A = triangle.Corners[0].Position;
-      Vector3 B = triangle.Corners[1].Position;
-      Vector3 C = triangle.Corners[2].Position;
+      Vector3 A = triangle.cornerA.Position;
+      Vector3 B = triangle.cornerB.Position;
+      Vector3 C = triangle.cornerC.Position;
 
       int tempDensity = (density * (Mathf.FloorToInt(triangle.Area * sensitivity) + 1))/10;
 

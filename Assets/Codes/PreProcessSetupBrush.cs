@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
-using UnityEditor.Search;
 using UnityEngine;
 
-public class BrushPreProcess : RenderFunctions
+public class BrushPreProcess : MonoBehaviour
 {
     [SerializeField]
     ComputeShader preProcessBrushCompute;
@@ -15,7 +13,7 @@ public class BrushPreProcess : RenderFunctions
     Material geometryMaterial;
 
     [SerializeField]
-    Vector2Int XYRatio = new Vector2Int(3,1);
+    Vector2Int XYRatio = new Vector2Int(3, 1);
 
     [SerializeField]
     int brushDensity = 10;
@@ -31,6 +29,16 @@ public class BrushPreProcess : RenderFunctions
 
     [SerializeField]
     bool flipIndices = false;
+
+    private ComputeBuffer verticesBuffer;
+    private ComputeBuffer normalsBuffer;
+    private ComputeBuffer indicesBuffer;
+    private ComputeBuffer constantBuffer;
+    private ComputeBuffer newVerticesBuffer; // Add a buffer for the generated vertices
+
+    byte vector3Size = sizeof(float) * 3;
+    byte floatSize = sizeof(float);
+    byte intSize = sizeof(int);
 
     protected struct Constants
     {
@@ -54,66 +62,56 @@ public class BrushPreProcess : RenderFunctions
         }
     }
 
-    byte vector3Size = sizeof(float) * 3;
-    byte floatSize = sizeof(float);
-    byte intSize = sizeof(int);
-
-    private ComputeBuffer verticesBuffer;
-    private ComputeBuffer normalsBuffer;
-    private ComputeBuffer indicesBuffer;
-    private ComputeBuffer constantBuffer;
-
     private void Start()
     {
-        int kernelID = preProcessBrushCompute.FindKernel("GenerateVertices");  
+        int kernelID = preProcessBrushCompute.FindKernel("GenerateVertices");
 
-        Constants[] constants = {new Constants(XYRatio, brushDensity, seed, planeSize, rotation, flipIndices)};
-        int subMeshCount = referenceMesh.subMeshCount;
-
-        //int vertexStride = vector3Size + vector3Size + intSize + vector2Size + floatSize;
-        //int triangleStride = vertexStride * 3 + floatSize + intSize;
+        // Initialize constants
+        Constants[] constants = { new Constants(XYRatio, brushDensity, seed, planeSize, rotation, flipIndices) };
         int constantStride = intSize * 5 + floatSize * 2;
 
-        verticesBuffer = new ComputeBuffer(referenceMesh.vertices.Length, vector3Size); // float3 -> 3 * 4 bytes
-        normalsBuffer = new ComputeBuffer(referenceMesh.normals.Length, vector3Size); // float3 -> 3 * 4 bytes
-        indicesBuffer = new ComputeBuffer(referenceMesh.triangles.Length, intSize); // float3 -> 3 * 4 bytes
-        constantBuffer = new ComputeBuffer(1, constantStride); // float3 -> 3 * 4 bytes
+        // Create and set data for buffers
+        verticesBuffer = new ComputeBuffer(referenceMesh.vertices.Length, vector3Size);
+        normalsBuffer = new ComputeBuffer(referenceMesh.normals.Length, vector3Size);
+        indicesBuffer = new ComputeBuffer(referenceMesh.triangles.Length, intSize);
+        constantBuffer = new ComputeBuffer(1, constantStride);
 
         verticesBuffer.SetData(referenceMesh.vertices);
         normalsBuffer.SetData(referenceMesh.normals);
         indicesBuffer.SetData(referenceMesh.triangles);
         constantBuffer.SetData(constants);
 
-        // Set the buffers in the compute shader
+        // Create and initialize the `newVertices` buffer (AppendStructuredBuffer)
+        int maxVertexCount = 10000; // Adjust based on expected number of vertices
+        newVerticesBuffer = new ComputeBuffer(maxVertexCount, vector3Size + vector3Size + intSize + 2 * floatSize, ComputeBufferType.Append);
+        newVerticesBuffer.SetCounterValue(0); // Reset counter for the append buffer
+
+        // Set buffers in the compute shader
         preProcessBrushCompute.SetBuffer(kernelID, "refVertices", verticesBuffer);
         preProcessBrushCompute.SetBuffer(kernelID, "refNormals", normalsBuffer);
         preProcessBrushCompute.SetBuffer(kernelID, "refIndices", indicesBuffer);
         preProcessBrushCompute.SetBuffer(kernelID, "constants", constantBuffer);
+        preProcessBrushCompute.SetBuffer(kernelID, "newVertices", newVerticesBuffer); // Set the new buffer
 
-        int subMeshes = subMeshCount;
-        if(subMeshCount == 1)
+        // Dispatch the compute shader for each submesh
+        int subMeshCount = referenceMesh.subMeshCount;
+        for (int i = 0; i < subMeshCount; i++)
         {
-            subMeshes = GetSmallestDivisibleFactor(subMeshCount / 3);
-        }
-        
-        for(int i = 0; i < subMeshes; i++)
-        {
-
             int triangleCount = referenceMesh.GetSubMesh(i).indexCount / 3;
-            // Dispatch the compute shader
-            preProcessBrushCompute.Dispatch(kernelID, triangleCount / 256, 1, 1);
+            preProcessBrushCompute.Dispatch(kernelID, Mathf.CeilToInt(triangleCount / 256.0f), 1, 1);
         }
 
-        // Link the buffers to the geometry material
-        //geometryMaterial.SetBuffer("triangles", verticesBuffer);
+        // Link the `newVertices` buffer to the material (optional)
+        geometryMaterial.SetBuffer("newVertices", newVerticesBuffer);
     }
 
     private void OnDestroy()
     {
-        // Release buffers
-        verticesBuffer.Release();
-        normalsBuffer.Release();
-        indicesBuffer.Release();
-        constantBuffer.Release();
+        // Release the compute buffers
+        verticesBuffer?.Release();
+        normalsBuffer?.Release();
+        indicesBuffer?.Release();
+        constantBuffer?.Release();
+        newVerticesBuffer?.Release(); // Release the new buffer
     }
 }
