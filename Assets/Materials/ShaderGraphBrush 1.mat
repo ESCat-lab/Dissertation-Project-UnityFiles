@@ -64,7 +64,7 @@ Material:
     - _Strength: 0.015
     m_Colors:
     - _Axis: {r: 0, g: 1, b: 0, a: 0}
-    - _BaseColor: {r: 1, g: 0, b: 0, a: 0}
-    - _SecondColor: {r: 0, g: 1, b: 0.51441073, a: 0}
-    - _ThirdColor: {r: 0, g: 1, b: 0.44778585, a: 0}
+    - _BaseColor: {r: 1, g: 0.114284456, b: 0, a: 0}
+    - _SecondColor: {r: 1, g: 0.15224266, b: 0, a: 0}
+    - _ThirdColor: {r: 1, g: 0.6138157, b: 0.5415094, a: 0}
   m_BuildTextureStacks: []

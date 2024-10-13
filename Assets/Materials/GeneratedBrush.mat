@@ -55,8 +55,8 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Smoothness: 0.019
-    - _planeSize: 0.69
+    - _Smoothness: 0.057
+    - _planeSize: 0.35
     - _rotation: 0.1
     - planeSize: 0.5
     - rotation: 0.1
