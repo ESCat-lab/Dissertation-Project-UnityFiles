@@ -47,10 +47,9 @@ uint LinearCongruentialMethod(uint seed)
 
 float RandomFloatRange(float2 seed, float min, float max)
 {
-    // Use a more robust hashing function for the seed
     float hashedValue = frac(sin(dot(seed, float2(12.9898, 78.233)) + 4.1414) * 43758.5453);
     
-    // Map the 0-1 random value to the desired range using min and max
+    // Map the 0-1 random value to the range
     return min + hashedValue * (max - min);
 }
 

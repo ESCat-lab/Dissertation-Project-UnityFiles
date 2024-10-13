@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: GeneratedBrush
-  m_Shader: {fileID: 4800000, guid: b711008ec6e946d4bacd1216409676ec, type: 3}
+  m_Shader: {fileID: 4800000, guid: a215a2fb72a16fa40a67446066b1f40d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -16,7 +16,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -24,7 +24,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: b2dbe5f7a642bf340b7bd0d2566da337, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _brushTexture:
@@ -48,16 +48,19 @@ Material:
     - YRatio: 1
     - _XRatio: 3
     - _YRatio: 1
-    - _brushDensity: 1
-    - _seed: 42
+    - _brushDensity: 8
+    - _seed: 64
     - brushDensity: 10
     - seed: 42
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _planeSize: 0.21
+    - _Smoothness: 0.019
+    - _planeSize: 0.69
     - _rotation: 0.1
     - planeSize: 0.5
     - rotation: 0.1
-    m_Colors: []
+    m_Colors:
+    - _SpecularTint: {r: 1, g: 0, b: 0, a: 1}
+    - _Tint: {r: 1, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
