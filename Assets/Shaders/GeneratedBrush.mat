@@ -48,7 +48,7 @@ Material:
     - YRatio: 1
     - _XRatio: 3
     - _YRatio: 1
-    - _brushDensity: 10
+    - _brushDensity: 1
     - _seed: 42
     - brushDensity: 10
     - seed: 42
