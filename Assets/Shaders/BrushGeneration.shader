@@ -16,10 +16,13 @@ Shader "Custom/BrushGeneration"
     }
     SubShader
     {
-        Tags { "RenderType"="Transparent" "LightMode" = "UniversalForward"}
+        Tags { "Queue"="Transparent" "RenderType"="Transparent" 
+        "LightMode" = "UniversalForward"
+        "RenderPipeline" = "UniversalPipeline"
+        "IgnoreProjector" = "True"}
         Cull Back      // Render the front-facing triangles
         ZWrite On       // Enable depth writing
-        ZTest LEqual    // Test depth for proper order
+        ZTest Always    // Test depth for proper order
         Blend SrcAlpha OneMinusSrcAlpha  // Standard alpha blending
 
         Pass
@@ -172,7 +175,7 @@ Shader "Custom/BrushGeneration"
                     float3 a = normalize(cross(N, up));
                     float3 b = normalize(cross(N, a));
                 
-                    float3 zOffset = N * RandomFloatRange(float2(tempSeed, tempSeed), -0.1, 0.1);
+                    float3 zOffset = N * RandomFloatRange(float2(tempSeed, tempSeed), -0.01, 0.01);
                     tempSeed++;
     
                     if(_XRatio == 0)
