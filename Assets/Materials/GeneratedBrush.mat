@@ -48,11 +48,12 @@ Material:
     - YRatio: 1
     - _XRatio: 3
     - _YRatio: 1
-    - _brushDensity: 1
-    - _seed: 64
+    - _brushDensity: 19
+    - _seed: 104
     - brushDensity: 10
     - seed: 42
     m_Floats:
+    - _Alpha: 1
     - _AlphaClip: 1
     - _AlphaToMask: 0
     - _Blend: 1
@@ -64,11 +65,12 @@ Material:
     - _Smoothness: 0.075
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
-    - _planeSize: 0.41
+    - _Zbuffer: 0
+    - _planeSize: 0.63
     - _rotation: 0.1
     - planeSize: 0.5
     - rotation: 0.1
     m_Colors:
-    - _SpecularTint: {r: 1, g: 0, b: 0, a: 1}
-    - _Tint: {r: 1, g: 0, b: 0, a: 1}
+    - _SpecularTint: {r: 0.62745297, g: 0.7509433, b: 0.5710003, a: 1}
+    - _Tint: {r: 0.52071106, g: 1, b: 0, a: 1}
   m_BuildTextureStacks: []

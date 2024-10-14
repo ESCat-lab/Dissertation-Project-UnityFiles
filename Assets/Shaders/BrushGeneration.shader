@@ -16,17 +16,25 @@ Shader "Custom/BrushGeneration"
     }
     SubShader
     {
-        Tags { "Queue"="Transparent" "RenderType"="Transparent" 
-        "LightMode" = "UniversalForward"
-        "RenderPipeline" = "UniversalPipeline"
-        "IgnoreProjector" = "True"}
-        Cull Back      // Render the front-facing triangles
-        ZWrite On       // Enable depth writing
-        ZTest Always    // Test depth for proper order
-        Blend SrcAlpha OneMinusSrcAlpha  // Standard alpha blending
+        Tags 
+        { 
+            "Queue"="Transparent" 
+            "RenderType"="Transparent" 
+            "RenderPipeline" = "UniversalPipeline"
+            "IgnoreProjector" = "True"
+        }
 
         Pass
         {
+            Cull Back      // Render the front-facing triangles
+            ZWrite Off       // Enable depth writing
+            ZTest LEqual    // Test depth for proper order
+            Blend SrcAlpha OneMinusSrcAlpha  // Standard alpha blending
+
+            Tags 
+            { 
+                "LightMode" = "UniversalForward"
+            }
             HLSLPROGRAM
             #pragma vertex vert
             #pragma geometry geom
@@ -161,7 +169,7 @@ Shader "Custom/BrushGeneration"
                     }
     
                     float3 P = vert0 + pointDensityA * (vert1 - vert0) + pointDensityB * (vert2 - vert0);
-                    P = mul(unity_WorldToObject, float4(P, 1.0)).xyz;
+                    // P = mul(unity_WorldToObject, float4(P, 1.0)).xyz;
                     // Average the normals
                     float3 N = normalize(cross(vert1 - vert0, vert2 - vert0));
     
@@ -236,6 +244,12 @@ Shader "Custom/BrushGeneration"
                 return texColor;
 			}
             ENDHLSL
+        }
+            // extra pass that renders to depth buffer only
+        Pass 
+        {
+            ZWrite On
+            ColorMask 0
         }
     }
 }
