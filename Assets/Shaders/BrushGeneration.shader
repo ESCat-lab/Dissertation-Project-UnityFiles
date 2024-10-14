@@ -3,6 +3,7 @@ Shader "Custom/BrushGeneration"
     Properties
     {   
         _MainTex ("Brush Texture", 2D) = "white" {}
+        _Albedo ("Albedo", 2D) = "white" {}
         _Tint ("Tint", Color) = (1,1,1,1)
         _Smoothness ("Smoothness", Range(0, 1)) = 0.5
         _SpecularTint ("Specular", Color) = (0.5, 0.5, 0.5)
@@ -52,6 +53,7 @@ Shader "Custom/BrushGeneration"
 
             //Lighting Parameters
             sampler2D _MainTex;
+            sampler2D _Albedo;
             float4 _Tint;
             float _Smoothness;
             float4 _SpecularTint;
@@ -78,6 +80,7 @@ Shader "Custom/BrushGeneration"
                 float4 positionWS : TEXCOORD2; //World Space
                 float3 normal : TEXCOORD1;
                 float2 uv : TEXCOORD0;
+                float2 uvOG : TEXCOORD3;
             };
 
             // Translated from Python Code by Bolster (2023) to HLSL Code.
@@ -120,7 +123,7 @@ Shader "Custom/BrushGeneration"
                 return output0;
             }
 
-            g2f AssignG2f(float3 positionOS, float3 normal, float2 uv)
+            g2f AssignG2f(float3 positionOS, float3 normal, float2 uv, float2 uvOG)
             {
                 //float4 positionCS : SV_POSITION; //Clip Space
                 //float4 positionWS : TEXCOORD2; //World Space
@@ -132,6 +135,7 @@ Shader "Custom/BrushGeneration"
                 output0.positionWS = mul(unity_ObjectToWorld, float4(positionOS, 1.0));
                 output0.normal = normal;
                 output0.uv = uv;
+                output0.uvOG = uvOG;
                 return output0;
             }
 
@@ -143,7 +147,7 @@ Shader "Custom/BrushGeneration"
                 return i;
             }
 
-            [maxvertexcount(72)] //TODO: Make a maximum vertex output
+            [maxvertexcount(66)] //TODO: Make a maximum vertex output
             void geom(triangle v2g input[3], inout TriangleStream<g2f> triStream, uint triangleID: SV_PrimitiveID)
             {
                 float3 vert0 = input[0].positionOS.xyz;
@@ -203,10 +207,10 @@ Shader "Custom/BrushGeneration"
                     float3 pos2 = P + (a * planeSizeX + b * planeSizeY) * _planeSize + zOffset;
                     float3 pos3 = P + (a * planeSizeX - b * planeSizeY) * _planeSize + zOffset;
     
-                    g2f output0 = AssignG2f(pos0, N, float2(0,1));
-                    g2f output1 = AssignG2f(pos1, N, float2(0,0));
-                    g2f output2 = AssignG2f(pos2, N, float2(1,0));
-                    g2f output3 = AssignG2f(pos3, N, float2(1,1));
+                    g2f output0 = AssignG2f(pos0, N, float2(0,1), input[0].uv);
+                    g2f output1 = AssignG2f(pos1, N, float2(0,0), input[1].uv);
+                    g2f output2 = AssignG2f(pos2, N, float2(1,0), input[2].uv);
+                    g2f output3 = AssignG2f(pos3, N, float2(1,1), input[0].uv);
     
                     triStream.Append(output0);
                     triStream.Append(output3);
@@ -231,9 +235,9 @@ Shader "Custom/BrushGeneration"
                 float3 viewDir = normalize(_WorldSpaceCameraPos - i.positionWS);
 				float3 lightColor = _MainLightColor.rgb;
 
-                float3 albedo = _Tint.rgb;
+                float3 albedo = tex2D(_Albedo, i.uvOG).rgb  * _Tint;
 				albedo = albedo * (1 - max(_SpecularTint.r, max(_SpecularTint.g, _SpecularTint.b)));     
-				float3 diffuse = albedo * lightColor * clamp(dot(lightDir, i.normal),0,1);
+				float3 diffuse = albedo * lightColor * clamp(dot(lightDir, i.normal), 0, 1);
 
 				float3 halfVector = normalize(lightDir + viewDir);
                 float3 specular = _SpecularTint.rgb *lightColor * pow(
