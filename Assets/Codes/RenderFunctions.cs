@@ -1,10 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using UnityEditor.ShaderGraph;
-using UnityEditor.ShortcutManagement;
-using UnityEditor.UI;
 using UnityEngine;
 
 public class RenderFunctions : MonoBehaviour
