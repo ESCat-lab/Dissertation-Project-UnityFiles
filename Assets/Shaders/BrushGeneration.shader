@@ -5,6 +5,7 @@ Shader "Custom/BrushGeneration"
         _MainTex ("Brush Texture", 2D) = "white" {}
         _Albedo ("Albedo", 2D) = "white" {}
         _Tint ("Tint", Color) = (1,1,1,1)
+        _ShadowColor ("Shadow Tint", Color) = (1,1,1,1)
         _Smoothness ("Smoothness", Range(0, 1)) = 0.5
         _SpecularTint ("Specular", Color) = (0.5, 0.5, 0.5)
 
@@ -40,7 +41,10 @@ Shader "Custom/BrushGeneration"
             #pragma vertex vert
             #pragma geometry geom
             #pragma fragment frag
-            // make fog work
+
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile_fog
 
             //Generation Parameters
@@ -55,10 +59,12 @@ Shader "Custom/BrushGeneration"
             sampler2D _MainTex;
             sampler2D _Albedo;
             float4 _Tint;
+            float4 _ShadowColor;
             float _Smoothness;
             float4 _SpecularTint;
     
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             struct appdata
             {
@@ -234,17 +240,31 @@ Shader "Custom/BrushGeneration"
 				float3 lightDir = _MainLightPosition.xyz;
                 float3 viewDir = normalize(_WorldSpaceCameraPos - i.positionWS);
 				float3 lightColor = _MainLightColor.rgb;
+                half4 shadowColor = _ShadowColor;
 
                 float3 albedo = tex2D(_Albedo, i.uvOG).rgb  * _Tint;
-				albedo = albedo * (1 - max(_SpecularTint.r, max(_SpecularTint.g, _SpecularTint.b)));     
-				float3 diffuse = albedo * lightColor * clamp(dot(lightDir, i.normal), 0, 1);
+				albedo = albedo * (1 - max(_SpecularTint.r, max(_SpecularTint.g, _SpecularTint.b)));
+                
+                #ifdef _MAIN_LIGHT_SHADOWS
+                    VertexPositionInputs vertexInput = (VertexPositionInputs)0;
+                    vertexInput.positionWS = i.positionWS;
+                    float4 shadowCoord = GetShadowCoord(vertexInput);
+                    half shadowAttenutation = MainLightRealtimeShadow(shadowCoord);
+                    shadowColor = lerp(float4(albedo, 1), _ShadowColor, (1.0 - shadowAttenutation) * _ShadowColor.a);
+                    //shadowColor *= clamp(dot(lightDir, i.normal), 0, 1);
+                #endif
+
+                //lightColor *= clamp(dot(lightDir, i.normal), 0, 1);
+                float3 shade = lerp(shadowColor.xyz, lightColor, clamp(dot(lightDir, i.normal), 0, 1));
+				float3 diffuse = albedo * shade;
 
 				float3 halfVector = normalize(lightDir + viewDir);
-                float3 specular = _SpecularTint.rgb *lightColor * pow(
+                float3 specular = _SpecularTint.rgb * lightColor * pow(
 					clamp(dot(halfVector, i.normal),0,1),
 					clamp(_Smoothness, 0.0001, 1) * 100
 				);
-                half4 texColor = tex2D(_MainTex, i.uv) * float4(diffuse + specular, 1);           
+
+                half4 texColor = tex2D(_MainTex, i.uv) * float4(diffuse + specular, 1);
                 return texColor;
 			}
             ENDHLSL
