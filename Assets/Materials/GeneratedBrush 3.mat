@@ -23,6 +23,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _Albedo:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: b2dbe5f7a642bf340b7bd0d2566da337, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -66,11 +70,14 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Zbuffer: 0
+    - _maxPlaneSize: 1.71
+    - _minPlaneSize: 0.39
     - _planeSize: 0.82
     - _rotation: 0.1
     - planeSize: 0.5
     - rotation: 0.1
     m_Colors:
+    - _ShadowColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecularTint: {r: 0.690566, g: 0.65209967, b: 0.63453895, a: 1}
     - _Tint: {r: 0.5396226, g: 0.23215348, b: 0.06414379, a: 1}
   m_BuildTextureStacks: []

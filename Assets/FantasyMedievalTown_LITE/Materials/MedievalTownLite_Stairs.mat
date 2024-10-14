@@ -109,6 +109,8 @@ Material:
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
+    - _maxPlaneSize: 2.62
+    - _minPlaneSize: 0.32
     - _planeSize: 0.39
     - _rotation: 0.1
     m_Colors:

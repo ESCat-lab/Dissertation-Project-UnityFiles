@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MedievalTownLite_Lantern
+  m_Name: MedievalTownLite_Walls2
   m_Shader: {fileID: 4800000, guid: a215a2fb72a16fa40a67446066b1f40d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -109,9 +109,9 @@ Material:
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
-    - _maxPlaneSize: 3.43
-    - _minPlaneSize: 0.24
-    - _planeSize: 0.31
+    - _maxPlaneSize: 0.8
+    - _minPlaneSize: 0.4
+    - _planeSize: 0.52
     - _rotation: 0.1
     m_Colors:
     - BottomColor: {r: 0, g: 0, b: 0, a: 0}

@@ -13,7 +13,8 @@ Shader "Custom/BrushGeneration"
         _YRatio("Y Lenght of Brush Strokes", Integer) = 1
         _brushDensity("Brush Count Per Triangle", Integer) = 3
         _seed("Randomizer Seed", Integer) = 42
-        _planeSize("Brush Size", Float) = 0.5
+        _maxPlaneSize("Brush Size Maximum", Float) = 1
+        _minPlaneSize("Brush Size Minimum", Float) = 0.1
         _rotation("Brush Rotation Amount", Float)  = 0.1
     }
     SubShader
@@ -52,7 +53,8 @@ Shader "Custom/BrushGeneration"
             int _YRatio;
             int _brushDensity;
             int _seed;
-            float _planeSize;
+            float _maxPlaneSize;
+            float _minPlaneSize;
             float _rotation;
 
             //Lighting Parameters
@@ -160,6 +162,14 @@ Shader "Custom/BrushGeneration"
                 float3 vert1 = input[1].positionOS.xyz;
                 float3 vert2 = input[2].positionOS.xyz;
                 
+                //Area = Square root of√s(s - a)(s - b)(s - c) where s is half the perimeter, or (a + b + c)/2.
+                float a = distance(vert0, vert1);
+                float b = distance(vert1, vert2);
+                float c = distance(vert2, vert0);
+                float s = length(a + b + c)/2;
+                float area = sqrt(s * (s - a) * (s - b) * (s - c));
+                float size = lerp(_minPlaneSize, _maxPlaneSize, area);
+                
                 int tempSeed = _seed + triangleID;
                 for(int i = 0; i < _brushDensity; i++)
                 {
@@ -204,14 +214,14 @@ Shader "Custom/BrushGeneration"
                     {
                         _YRatio = 1;
                     }
+                    
+                    float planeSizeX = size * _XRatio / (_XRatio + _YRatio);
+                    float planeSizeY = size * _YRatio / (_XRatio + _YRatio);
     
-                    float planeSizeX = _planeSize * _XRatio / (_XRatio + _YRatio);
-                    float planeSizeY = _planeSize * _YRatio / (_XRatio + _YRatio);
-    
-                    float3 pos0 = P - (a * planeSizeX + b * planeSizeY) * _planeSize + zOffset;
-                    float3 pos1 = P - (a * planeSizeX - b * planeSizeY) * _planeSize + zOffset;
-                    float3 pos2 = P + (a * planeSizeX + b * planeSizeY) * _planeSize + zOffset;
-                    float3 pos3 = P + (a * planeSizeX - b * planeSizeY) * _planeSize + zOffset;
+                    float3 pos0 = P - (a * planeSizeX + b * planeSizeY) * size + zOffset;
+                    float3 pos1 = P - (a * planeSizeX - b * planeSizeY) * size + zOffset;
+                    float3 pos2 = P + (a * planeSizeX + b * planeSizeY) * size + zOffset;
+                    float3 pos3 = P + (a * planeSizeX - b * planeSizeY) * size + zOffset;
     
                     g2f output0 = AssignG2f(pos0, N, float2(0,1), input[0].uv);
                     g2f output1 = AssignG2f(pos1, N, float2(0,0), input[1].uv);
