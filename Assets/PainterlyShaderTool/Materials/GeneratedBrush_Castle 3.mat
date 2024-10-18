@@ -1,18 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-557930232853965701
-MonoBehaviour:
-  m_ObjectHideFlags: 11
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  version: 7
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -20,9 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ShaderGraphBrush 1
-  m_Shader: {fileID: -6465566751694194690, guid: 6074e1b2df20a514397bd5bb14defeb6,
-    type: 3}
+  m_Name: GeneratedBrush_Castle 3
+  m_Shader: {fileID: 4800000, guid: a215a2fb72a16fa40a67446066b1f40d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -37,8 +23,16 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _Brush:
+    - _Albedo:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
         m_Texture: {fileID: 2800000, guid: b2dbe5f7a642bf340b7bd0d2566da337, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _brushTexture:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -53,19 +47,37 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    m_Ints: []
+    m_Ints:
+    - XRatio: 1
+    - YRatio: 1
+    - _XRatio: 3
+    - _YRatio: 1
+    - _brushDensity: 19
+    - _seed: 104
+    - brushDensity: 10
+    - seed: 42
     m_Floats:
-    - _BrushStrenght: 1
-    - _CellStrenght: 0.371
-    - _Noise: 1
+    - _Alpha: 1
+    - _AlphaClip: 1
+    - _AlphaToMask: 0
+    - _Blend: 1
+    - _Cull: 0
+    - _DstBlend: 0
+    - _DstBlendAlpha: 0
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Scale: 9.28
-    - _Strength: 0.005
+    - _Smoothness: 0.075
+    - _SrcBlend: 1
+    - _SrcBlendAlpha: 1
+    - _Zbuffer: 0
+    - _maxPlaneSize: 1.69
+    - _minPlaneSize: 0.24
+    - _planeSize: 0.63
+    - _rotation: 0.1
+    - planeSize: 0.5
+    - rotation: 0.1
     m_Colors:
-    - _Axis: {r: 0, g: 1, b: 0, a: 0}
-    - _BaseColor: {r: 1, g: 0.18201323, b: 0, a: 0}
-    - _HighlightColor: {r: 1, g: 0.58550376, b: 0.5415094, a: 0}
-    - _SecondColor: {r: 1, g: 0.15224266, b: 0, a: 0}
-    - _ThirdColor: {r: 1, g: 0.6138157, b: 0.5415094, a: 0}
+    - _ShadowColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecularTint: {r: 0, g: 0, b: 0, a: 1}
+    - _Tint: {r: 0.6528301, g: 0.33636937, b: 0.04803837, a: 1}
   m_BuildTextureStacks: []

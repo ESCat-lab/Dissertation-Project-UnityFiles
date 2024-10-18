@@ -243,6 +243,9 @@ Shader "Custom/BrushGeneration"
     
             }
 
+            //Blinn Phong Lighting Model referencing guide by
+            //Flick, J. (2016). Rendering 4. [online] Catlikecoding.com. 
+            //Available at: https://catlikecoding.com/unity/tutorials/rendering/part-4/ [Accessed 16 Oct. 2024].
 			half4 frag (g2f i) :SV_TARGET
             {
                 //this is a small correction that can be removed to optimize
